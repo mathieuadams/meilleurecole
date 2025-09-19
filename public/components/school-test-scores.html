@@ -1,0 +1,130 @@
+
+<!-- school-test-scores.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Test Scores</h2>
+    <span style="font-size:.875rem;color:#6b7280;">2023/2024</span>
+  </div>
+  
+  <p style="color:#374151; margin-bottom:1.5rem; font-size:0.875rem;">
+    These scores reflect how well students at this school perform on state-required tests.
+  </p>
+  
+  <div class="test-scores-container" id="testScoresContainer">
+    <!-- English -->
+    <div class="test-score-row">
+      <div class="test-subject">
+        <span class="subject-name">English</span>
+        <button class="info-btn" onclick="showSubjectInfo('english')" aria-label="More info about English scores">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="score-display">
+        <span class="score-percentage" id="englishScore">-</span>
+        <div class="score-bar-container">
+          <div class="score-bar">
+            <div class="score-fill" id="englishBar" style="width: 0%"></div>
+            <div class="average-marker" id="englishAvg" style="left: 50%; display: none;">
+              <span class="avg-arrow">▼</span>
+            </div>
+          </div>
+          <div class="avg-label-container">
+            <span class="avg-value" id="englishAvgLabel" style="display: none;">National Avg: -</span>
+          </div>
+        </div>
+      </div>
+      <button class="expand-btn" onclick="toggleDetails('english')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Math -->
+    <div class="test-score-row">
+      <div class="test-subject">
+        <span class="subject-name">Math</span>
+        <button class="info-btn" onclick="showSubjectInfo('math')" aria-label="More info about Math scores">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="score-display">
+        <span class="score-percentage" id="mathScore">-</span>
+        <div class="score-bar-container">
+          <div class="score-bar">
+            <div class="score-fill" id="mathBar" style="width: 0%"></div>
+            <div class="average-marker" id="mathAvg" style="left: 50%; display: none;">
+              <span class="avg-arrow">▼</span>
+            </div>
+          </div>
+          <div class="avg-label-container">
+            <span class="avg-value" id="mathAvgLabel" style="display: none;">National Avg: -</span>
+          </div>
+        </div>
+      </div>
+      <button class="expand-btn" onclick="toggleDetails('math')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Science -->
+    <div class="test-score-row">
+      <div class="test-subject">
+        <span class="subject-name">Science</span>
+        <button class="info-btn" onclick="showSubjectInfo('science')" aria-label="More info about Science scores">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="score-display">
+        <span class="score-percentage" id="scienceScore">-</span>
+        <div class="score-bar-container">
+          <div class="score-bar">
+            <div class="score-fill" id="scienceBar" style="width: 0%"></div>
+            <div class="average-marker" id="scienceAvg" style="left: 50%; display: none;">
+              <span class="avg-arrow">▼</span>
+            </div>
+          </div>
+          <div class="avg-label-container">
+            <span class="avg-value" id="scienceAvgLabel" style="display: none;">National Avg: -</span>
+          </div>
+        </div>
+      </div>
+      <button class="expand-btn" onclick="toggleDetails('science')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <div class="average-legend">
+    <span class="legend-item">▼ National Average.</span>
+  </div>
+  
+  <!-- Parent Tip Box -->
+  <div class="parent-tip-box">
+    <div class="tip-icon">🦉</div>
+    <div class="tip-content">
+      <h4 class="tip-title">Parent Tip</h4>
+      <p class="tip-text">
+        Even high-performing schools can have disparities between student groups. Understand what 
+        <a href="https://www.gov.uk/national-curriculum" target="_blank" style="color:#2563eb;">on-track learning looks like</a> 
+        for your child and how you can help at home.
+      </p>
+    </div>
+  </div>
+  
+  <!-- Original detailed performance data (hidden by default) -->
+  <div id="detailedPerformance" style="display:none; margin-top:1.5rem;">
+    <h3 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Detailed Performance Metrics</h3>
+    <div class="performance-grid" id="performanceGrid"></div>
+  </div>
+</div>

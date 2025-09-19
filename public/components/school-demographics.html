@@ -1,0 +1,211 @@
+<!-- school-demographics.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Student Demographics</h2>
+  </div>
+  
+  <p style="color:#374151; margin-bottom:1.5rem; font-size:0.875rem;">
+    Schools that create a positive culture help all students thrive.
+  </p>
+  
+  <!-- Demographics rows -->
+  <div class="demographics-container">
+    <!-- EAL Students -->
+    <div class="demo-metric-row">
+      <div class="metric-visual">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#e5e7eb" stroke-width="5"/>
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#10b981" stroke-width="5"
+                  stroke-dasharray="157" 
+                  stroke-dashoffset="157"
+                  transform="rotate(-90 30 30)"
+                  id="ealCircle"/>
+        </svg>
+        <div class="metric-percent">
+          <span id="ealPercentage">-</span>
+        </div>
+      </div>
+      <div class="metric-description">
+        <div class="metric-title">Students Learning English</div>
+        <div class="metric-subtitle">English as an Additional Language (EAL)</div>
+      </div>
+    </div>
+    
+    <!-- FSM Students -->
+    <div class="demo-metric-row">
+      <div class="metric-visual">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#e5e7eb" stroke-width="5"/>
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#10b981" stroke-width="5"
+                  stroke-dasharray="157" 
+                  stroke-dashoffset="157"
+                  transform="rotate(-90 30 30)"
+                  id="fsmCircle"/>
+        </svg>
+        <div class="metric-percent">
+          <span id="fsmPercentage">-</span>
+        </div>
+      </div>
+      <div class="metric-description">
+        <div class="metric-title">Eligible for Free School Meals</div>
+        
+      </div>
+    </div>
+    
+    <!-- Gender Breakdown -->
+    <div class="demo-metric-row">
+      <div class="metric-visual">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#86efac" stroke-width="10"/>
+          <circle cx="30" cy="30" r="25" fill="none" stroke="#10b981" stroke-width="10"
+                  stroke-dasharray="157" 
+                  stroke-dashoffset="78.5"
+                  transform="rotate(-90 30 30)"
+                  id="genderCircle"/>
+        </svg>
+        <div class="metric-percent gender-split">
+          <span id="femalePercentage" style="font-size: 0.875rem;">-</span>
+          <span id="malePercentage" style="font-size: 0.875rem;">-</span>
+        </div>
+      </div>
+      <div class="metric-description">
+        <div class="metric-title">Gender Distribution</div>
+        <div class="metric-subtitle">
+          <span style="color:#86efac;">●</span> Female
+          <span style="color:#10b981; margin-left:15px;">●</span> Male
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Special Educational Needs section -->
+  <div id="additionalDemographics" style="margin-top: 2rem; display: none;">
+    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #374151;">Special Educational Needs</h3>
+    
+    <div class="demo-metric-row">
+      <div class="metric-bar-container">
+        <div class="metric-bar">
+          <div class="metric-fill" id="senSupportBar" style="width: 0%"></div>
+        </div>
+        <span class="metric-bar-value" id="senSupportValue">-</span>
+      </div>
+      <div class="metric-description">
+        <div class="metric-title">SEN Support</div>
+        <div class="metric-subtitle">Students receiving additional learning support</div>
+      </div>
+    </div>
+    
+    <div class="demo-metric-row">
+      <div class="metric-bar-container">
+        <div class="metric-bar">
+          <div class="metric-fill" id="senEhcpBar" style="width: 0%"></div>
+        </div>
+        <span class="metric-bar-value" id="senEhcpValue">-</span>
+      </div>
+      <div class="metric-description">
+        <div class="metric-title">Education, Health & Care Plan</div>
+        <div class="metric-subtitle">Students with formal EHCP/Statement</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.demographics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.demo-metric-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.demo-metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-visual {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.metric-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metric-percent.gender-split {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  gap: 2px;
+}
+
+.metric-description {
+  flex: 1;
+}
+
+.metric-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.metric-subtitle {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.metric-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+.metric-bar {
+  width: 150px;
+  height: 20px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  position: relative;
+}
+
+.metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.metric-bar-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  min-width: 35px;
+}
+
+@media (max-width: 768px) {
+  .demo-metric-row {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .metric-visual {
+    margin: 0;
+  }
+}</style>
