@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DVKE6J0Z2Z"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DVKE6J0Z2Z');
+  </script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title id="pageTitle">City Schools Guide | FindSchool.uk</title>
+  <meta id="metaDescription" name="description" content="Explore top schools in City with FindSchool.uk. Compare Ofsted ratings, performance trends and parent reviews to choose confidently."/>
+  <meta name="robots" content="index,follow"/>
+  <meta name="author" content="FindSchool.uk"/>
+  <link rel="canonical" href="https://www.findschool.uk/city" id="canonicalLink"/>
+  <link rel="alternate" href="https://www.findschool.uk/city" hreflang="en-gb" id="alternateLink"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <meta property="og:site_name" content="FindSchool.uk"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="City Schools Guide | FindSchool.uk" id="ogTitle"/>
+  <meta property="og:description" content="Discover schools in City with FindSchool.uk, including Ofsted reports, pupil outcomes and reviews." id="ogDescription"/>
+  <meta property="og:url" content="https://www.findschool.uk/city" id="ogUrl"/>
+  <meta property="og:image" content="https://www.findschool.uk/images/findschool-social.png"/>
+  <meta property="og:image:alt" content="FindSchool.uk social preview card"/>
+  <meta property="og:locale" content="en_GB"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="City Schools Guide | FindSchool.uk" id="twitterTitle"/>
+  <meta name="twitter:description" content="See the best performing schools in City with FindSchool.uk." id="twitterDescription"/>
+  <meta name="twitter:image" content="https://www.findschool.uk/images/findschool-social.png"/>
+  <meta name="twitter:image:alt" content="FindSchool.uk social preview card"/>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/local-authority.css">
+  <script type="application/ld+json" id="structuredData">
+    {}
+  </script>
+  
+  <style>
+    .city-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 3rem 0;
+    }
+    
+    .city-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .city-meta {
+      font-size: 1.125rem;
+      opacity: 0.9;
+    }
+    
+    .la-breakdown-section {
+      background: #f9fafb;
+      padding: 2rem 0;
+      margin: 2rem 0;
+    }
+    
+    .la-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .la-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .la-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+    
+    .la-card-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.5rem;
+    }
+    
+    .la-card-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    .la-stat {
+      font-size: 0.875rem;
+    }
+    
+    .la-stat-number {
+      font-weight: 600;
+      color: #2563eb;
+    }
+    
+    .la-stat-label {
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+
+  <!-- City Header -->
+  <section class="city-header">
+    <div class="container">
+      <h1 class="city-title" id="cityName">Loading...</h1>
+      <div class="city-meta">
+        <span id="totalSchools">-</span> Schools
+        <span class="meta-separator">•</span>
+        <span id="totalStudents">-</span> Students
+        <span class="meta-separator">•</span>
+        <span id="totalLAs">-</span> Local Authorities
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary Stats (similar to LA page) -->
+  <section class="summary-section">
+    <div class="container">
+      <h2 style="text-align: center; margin-bottom: 0.5rem; color: #374151;">School Categories</h2>
+      <p style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-bottom: 2rem;">
+        Schools may appear in multiple categories. Secondary schools with sixth form provision 
+        are counted in both "Secondary Schools" and "Schools with Sixth Form".
+      </p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="primaryCount">-</div>
+          <div class="stat-label">Primary<br>Schools</div>
+          <div class="stat-sublabel" style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">Ages 4-11</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="secondaryCount">-</div>
+          <div class="stat-label">Secondary<br>Schools</div>
+          <div class="stat-sublabel" style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">Ages 11-16/18</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="sixthFormCount">-</div>
+          <div class="stat-label">Schools with<br>Sixth Form</div>
+          <div class="stat-sublabel" style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">Post-16 provision</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="specialCount">-</div>
+          <div class="stat-label">Special<br>Schools</div>
+          <div class="stat-sublabel" style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">SEND provision</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Local Authorities Breakdown -->
+  <section class="la-breakdown-section">
+    <div class="container">
+      <h2 style="text-align: center; margin-bottom: 0.5rem;">Local Authorities in <span id="cityNameInLA">this city</span></h2>
+      <p style="text-align: center; color: #6b7280; font-size: 0.875rem;">
+        Click on a local authority to view detailed school information for that area.
+      </p>
+      
+      <div class="la-grid" id="laGrid">
+        <!-- LA cards will be populated here -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Ofsted Ratings Distribution -->
+  <section class="ratings-section">
+    <div class="container">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">City-wide Ofsted Ratings Distribution</h2>
+          <div class="info-icon" title="Based on latest Ofsted inspection results">ℹ️</div>
+        </div>
+        
+        <div class="ratings-distribution">
+          <div class="rating-bar">
+            <div class="rating-label">Outstanding</div>
+            <div class="rating-track">
+              <div class="rating-fill outstanding" id="outstandingBar" style="width: 0%"></div>
+            </div>
+            <div class="rating-percent" id="outstandingPercent">0%</div>
+          </div>
+          
+          <div class="rating-bar">
+            <div class="rating-label">Good</div>
+            <div class="rating-track">
+              <div class="rating-fill good" id="goodBar" style="width: 0%"></div>
+            </div>
+            <div class="rating-percent" id="goodPercent">0%</div>
+          </div>
+          
+          <div class="rating-bar">
+            <div class="rating-label">Requires Improvement</div>
+            <div class="rating-track">
+              <div class="rating-fill requires-improvement" id="requiresBar" style="width: 0%"></div>
+            </div>
+            <div class="rating-percent" id="requiresPercent">0%</div>
+          </div>
+          
+          <div class="rating-bar">
+            <div class="rating-label">Inadequate</div>
+            <div class="rating-track">
+              <div class="rating-fill inadequate" id="inadequateBar" style="width: 0%"></div>
+            </div>
+            <div class="rating-percent" id="inadequatePercent">0%</div>
+          </div>
+        </div>
+        
+        <div class="rating-summary">
+          <p><strong id="aboveAveragePercent">0%</strong> of schools in <span id="cityNameInRating">this city</span> are rated <strong>Good or Outstanding</strong></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Schools -->
+  <section class="top-schools-section">
+    <div class="container">
+      <h2 class="section-main-title">Top Rated Schools in <span id="cityNameInSchools">This City</span></h2>
+      <p class="section-subtitle">Top schools based on comprehensive ratings including Ofsted, academic performance, and attendance.</p>
+      
+      <!-- Tab Navigation -->
+      <div class="school-tabs">
+        <button class="school-tab active" data-phase="primary" onclick="switchPhase('primary')">Primary</button>
+        <button class="school-tab" data-phase="secondary" onclick="switchPhase('secondary')">Secondary</button>
+        <button class="school-tab" data-phase="sixth-form" onclick="switchPhase('sixth-form')">Sixth Form</button>
+      </div>
+      
+      <!-- School Lists -->
+      <div class="schools-content">
+        <div id="primarySchools" class="school-list active">
+          <div class="loading">Loading primary schools...</div>
+        </div>
+        <div id="secondarySchools" class="school-list">
+          <div class="loading">Loading secondary schools...</div>
+        </div>
+        <div id="sixthFormSchools" class="school-list">
+          <div class="loading">Loading sixth form schools...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- City Search CTA -->
+  <section class="summary-section" style="padding-top:0;">
+    <div class="container" style="text-align:center; margin-top: 1rem;">
+      <a id="citySearchLink" class="search-button" href="#" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
+        <span>🔎</span>
+        <span>Search all schools in this area</span>
+      </a>
+    </div>
+  </section>
+
+  <div id="footer" style="margin-top:4rem;"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/city.js"></script>
+  
+  <script>
+    // Load components
+    async function loadComponents() {
+      const components = ['header', 'footer'];
+      for (const comp of components) {
+        try {
+          const res = await fetch(`/components/${comp}.html`);
+          if (res.ok) {
+            const html = await res.text();
+            document.getElementById(comp).innerHTML = html;
+            if (comp === 'header' && typeof window.initializeHeader === 'function') {
+              window.initializeHeader();
+            }
+          }
+        } catch (e) {
+          console.error(`Error loading ${comp}:`, e);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadComponents();
+    });
+  </script>
+</body>
+</html>

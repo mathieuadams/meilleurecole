@@ -1,0 +1,6 @@
+# Local secrets and outputs
+scripts/.openai_key
+.env
+enriched_*.csv
+*.log
+

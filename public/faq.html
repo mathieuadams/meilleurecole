@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindSchool.uk FAQs | UK School Ratings & Parent Support</title>
+    <meta name="description" content="Answers to popular FindSchool.uk questions about UK school ratings, Ofsted data, parent reviews, privacy, and how to get the most from our platform." />
+    <meta name="robots" content="index,follow" />
+    <meta name="author" content="FindSchool.uk Support Team" />
+    <meta name="keywords" content="FindSchool.uk FAQ, UK school ratings help, Ofsted data questions" />
+    <link rel="canonical" href="https://www.findschool.uk/faq" />
+    <link rel="alternate" href="https://www.findschool.uk/faq" hreflang="en-gb" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta property="og:site_name" content="FindSchool.uk" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FindSchool.uk FAQs" />
+    <meta property="og:description" content="Find quick answers about FindSchool.uk's UK school data, reviews and privacy practices." />
+    <meta property="og:url" content="https://www.findschool.uk/faq" />
+    <meta property="og:image" content="https://www.findschool.uk/images/findschool-social.png" />
+    <meta property="og:image:alt" content="FindSchool.uk social preview card" />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FindSchool.uk FAQs" />
+    <meta name="twitter:description" content="Get help using FindSchool.uk's school comparison tools and data." />
+    <meta name="twitter:image" content="https://www.findschool.uk/images/findschool-social.png" />
+    <meta name="twitter:image:alt" content="FindSchool.uk social preview card" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is FindSchool.uk?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "FindSchool.uk is a comprehensive UK school information platform that unites government data, Ofsted inspections and community reviews so families can compare every school in England, Scotland, Wales and Northern Ireland."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is FindSchool.uk free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Every search, school profile and review on FindSchool.uk is free to access because we believe transparent school information should be available to all families."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How are school ratings calculated?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "FindSchool.uk ratings combine academic performance, Ofsted judgements, attendance trends and pupil progress. We normalise the data across the UK nations to present a fair 1-10 score."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where does FindSchool.uk source its data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Data is refreshed frequently from official sources including the Department for Education, Ofsted, local authorities and the Schools Census, alongside carefully moderated community reviews."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I submit a school review?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Parents, carers and alumni can share experiences using the FindSchool.uk review form. Each submission is moderated to ensure it is constructive and compliant with our community guidelines."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can schools request updates or corrections?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "School administrators can contact the FindSchool.uk team with evidence-backed updates via the partnership enquiry option on our contact page."
+            }
+          }
+        ]
+      }
+    </script>
+    
+    <style>
+        .faq-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .faq-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .faq-subtitle {
+            font-size: 1.125rem;
+            opacity: 0.95;
+        }
+        
+        .faq-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+        }
+        
+        .faq-categories {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
+        }
+        
+        .category-btn {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+        
+        .category-btn:hover {
+            color: #374151;
+        }
+        
+        .category-btn.active {
+            color: #2563eb;
+        }
+        
+        .category-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #2563eb;
+        }
+        
+        .faq-section {
+            display: none;
+        }
+        
+        .faq-section.active {
+            display: block;
+        }
+        
+        .faq-group {
+            margin-bottom: 2rem;
+        }
+        
+        .faq-group-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .faq-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        
+        .faq-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .faq-question {
+            padding: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #111827;
+            transition: background 0.2s;
+        }
+        
+        .faq-question:hover {
+            background: #f9fafb;
+        }
+        
+        .faq-toggle {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: transform 0.2s;
+        }
+        
+        .faq-item.open .faq-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            color: #4b5563;
+            line-height: 1.75;
+        }
+        
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+        
+        .faq-answer p {
+            margin-bottom: 0.75rem;
+        }
+        
+        .faq-answer p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .faq-answer ul {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .faq-answer li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .quick-links {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .quick-links-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 1rem;
+        }
+        
+        .quick-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .quick-link {
+            color: #2563eb;
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+            font-size: 0.875rem;
+        }
+        
+        .quick-link:hover {
+            text-decoration: underline;
+        }
+        
+        .contact-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .contact-banner h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .faq-hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .faq-categories {
+                gap: 0.25rem;
+            }
+            
+            .category-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header"></div>
+    
+    <section class="faq-hero">
+        <div class="container">
+            <h1>Frequently Asked Questions</h1>
+            <p class="faq-subtitle">Find answers to common questions about FindSchool.uk</p>
+        </div>
+    </section>
+    
+    <div class="faq-container">
+        <div class="quick-links">
+            <div class="quick-links-title">🔍 Quick Links</div>
+            <div class="quick-links-grid">
+                <a href="#general" class="quick-link">What is FindSchool.uk?</a>
+                <a href="#ratings" class="quick-link">How are ratings calculated?</a>
+                <a href="#data" class="quick-link">Where does data come from?</a>
+                <a href="#reviews" class="quick-link">How do I leave a review?</a>
+                <a href="#account" class="quick-link">Do I need an account?</a>
+                <a href="#updates" class="quick-link">How often is data updated?</a>
+            </div>
+        </div>
+        
+        <div class="faq-categories">
+            <button class="category-btn active" onclick="switchCategory('general')">General</button>
+            <button class="category-btn" onclick="switchCategory('ratings')">Ratings & Data</button>
+            <button class="category-btn" onclick="switchCategory('search')">Search & Navigation</button>
+            <button class="category-btn" onclick="switchCategory('reviews')">Reviews</button>
+            <button class="category-btn" onclick="switchCategory('schools')">For Schools</button>
+        </div>
+        
+        <!-- General Category -->
+        <div class="faq-section active" id="general">
+            <div class="faq-group">
+                <h2 class="faq-group-title">General Questions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What is FindSchool.uk?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            FindSchool.uk is a comprehensive school information platform that helps families find and compare schools across the United Kingdom. We aggregate official government data, inspection reports, and community reviews to provide the most complete picture of UK schools available online.
+                        </p>
+                        <p>
+                            Our mission is to make school selection easier by providing transparent, accurate, and accessible information about all 30,000+ schools in England, Scotland, Wales, and Northern Ireland.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Is FindSchool.uk free to use?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Yes! FindSchool.uk is completely free for all users. We believe every family should have access to comprehensive school information regardless of their circumstances. There are no hidden fees, premium subscriptions, or paywalls.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Do I need to create an account?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            No account is required to search for schools, view profiles, or read reviews. You can access all our data without signing up. Currently, an account is only needed if you want to save favorite schools or submit reviews (feature coming soon).
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What types of schools are included?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We include all types of schools registered with government education departments:</p>
+                        <ul>
+                            <li>State schools (maintained schools, academies, free schools)</li>
+                            <li>Independent/private schools</li>
+                            <li>Special schools</li>
+                            <li>Pupil referral units</li>
+                            <li>Primary schools (ages 4-11)</li>
+                            <li>Secondary schools (ages 11-16/18)</li>
+                            <li>All-through schools</li>
+                            <li>Sixth form colleges</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ratings & Data Category -->
+        <div class="faq-section" id="ratings">
+            <div class="faq-group">
+                <h2 class="faq-group-title">Ratings & Data</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How are school ratings calculated?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Our 1-10 rating system combines three key factors:
+                        </p>
+                        <ul>
+                            <li><strong>Academic Performance (40%):</strong> Student achievement in English, Maths, and Science</li>
+                            <li><strong>Inspection Ratings (40%):</strong> Latest Ofsted or equivalent inspection results</li>
+                            <li><strong>Attendance (20%):</strong> School attendance rates compared to local averages</li>
+                        </ul>
+                        <p>
+                            Each factor is normalized to a 0-10 scale and weighted to produce the overall rating. Schools with incomplete data have their weights adjusted proportionally. See our <a href="/methodology">Methodology page</a> for full details.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Where does your data come from?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            All our data comes from official government sources:
+                        </p>
+                        <ul>
+                            <li>Department for Education (England)</li>
+                            <li>Ofsted inspection reports</li>
+                            <li>Education Scotland</li>
+                            <li>Estyn (Wales)</li>
+                            <li>Education and Training Inspectorate (Northern Ireland)</li>
+                            <li>Local authority education departments</li>
+                        </ul>
+                        <p>
+                            We aggregate and standardize this data to make it easily comparable across schools. Visit our <a href="/data-sources">Data Sources page</a> for more information.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How often is data updated?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Update frequency varies by data type:
+                        </p>
+                        <ul>
+                            <li><strong>Performance data:</strong> Updated annually after official releases (usually autumn)</li>
+                            <li><strong>Inspection reports:</strong> Added within 48 hours of publication</li>
+                            <li><strong>School characteristics:</strong> Refreshed monthly from GIAS</li>
+                            <li><strong>Attendance data:</strong> Updated termly</li>
+                            <li><strong>Contact information:</strong> Checked monthly</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Why do some schools have incomplete data?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Schools may have incomplete data for several reasons:
+                        </p>
+                        <ul>
+                            <li>New schools (less than 3 years old) haven't been inspected yet</li>
+                            <li>Small schools may not publish data to protect student privacy</li>
+                            <li>Independent schools aren't required to provide all data publicly</li>
+                            <li>Some schools don't participate in standard assessments</li>
+                            <li>Recent academy conversions may have data gaps</li>
+                        </ul>
+                        <p>
+                            We clearly mark when ratings are based on partial data and show which components are missing.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search & Navigation Category -->
+        <div class="faq-section" id="search">
+            <div class="faq-group">
+                <h2 class="faq-group-title">Search & Navigation</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I search for schools?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            You can search for schools in several ways:
+                        </p>
+                        <ul>
+                            <li><strong>By name:</strong> Type the school name in the search box</li>
+                            <li><strong>By postcode:</strong> Enter a UK postcode to find nearby schools</li>
+                            <li><strong>By city:</strong> Search for a city name or browse our city pages</li>
+                            <li><strong>By local authority:</strong> Find all schools in a council area</li>
+                        </ul>
+                        <p>
+                            Our search includes autocomplete suggestions to help you find schools quickly.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Can I compare multiple schools?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Yes! You can compare schools side-by-side using our comparison tool. Simply:
+                        </p>
+                        <ul>
+                            <li>Search for schools you want to compare</li>
+                            <li>Click "Add to Compare" on each school profile</li>
+                            <li>View the comparison page to see metrics side-by-side</li>
+                        </ul>
+                        <p>
+                            You can compare up to 4 schools at once, viewing their ratings, performance data, and key characteristics in a single view.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I find schools near me?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Enter your postcode in the search box to find schools in your area. The results will show:
+                        </p>
+                        <ul>
+                            <li>Schools within your postcode area</li>
+                            <li>Distance from the postcode center (when available)</li>
+                            <li>Options to filter by school type and phase</li>
+                        </ul>
+                        <p>
+                            You can also browse by city or local authority to explore schools in wider areas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Category -->
+        <div class="faq-section" id="reviews">
+            <div class="faq-group">
+                <h2 class="faq-group-title">Reviews</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I leave a review?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            To leave a review:
+                        </p>
+                        <ul>
+                            <li>Navigate to the school's profile page</li>
+                            <li>Click "Write a Review" button</li>
+                            <li>Rate the school on various aspects</li>
+                            <li>Write your detailed feedback</li>
+                            <li>Select your relationship to the school</li>
+                            <li>Submit your review</li>
+                        </ul>
+                        <p>
+                            Reviews are moderated to ensure they meet our community guidelines before publication.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What are the review guidelines?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Reviews must be:
+                        </p>
+                        <ul>
+                            <li>Based on genuine experience with the school</li>
+                            <li>Respectful and constructive</li>
+                            <li>Free from profanity or hate speech</li>
+                            <li>Relevant to the school being reviewed</li>
+                            <li>Your own original content</li>
+                        </ul>
+                        <p>
+                            We remove reviews that violate these guidelines, contain personal attacks, or include private information about individuals.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Can I edit or delete my review?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Currently, reviews cannot be edited once submitted to maintain integrity. If you need to update or remove a review due to errors or changed circumstances, please contact us through the <a href="/contact">Contact Form</a> with:
+                        </p>
+                        <ul>
+                            <li>The school name and your review date</li>
+                            <li>Reason for the change request</li>
+                            <li>Your contact information</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- For Schools Category -->
+        <div class="faq-section" id="schools">
+            <div class="faq-group">
+                <h2 class="faq-group-title">Information for Schools</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How can schools update their information?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Most school data comes from official government sources and updates automatically. However, if you notice incorrect information:
+                        </p>
+                        <ul>
+                            <li>Contact us through our <a href="/contact">Contact Form</a></li>
+                            <li>Select "Report an Issue" as the subject</li>
+                            <li>Include your school's URN and specific corrections needed</li>
+                            <li>Provide supporting documentation if available</li>
+                        </ul>
+                        <p>
+                            We'll verify and update the information within 48 hours.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Can schools claim their profile?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            We're developing a feature for schools to claim and enhance their profiles. This will allow schools to:
+                        </p>
+                        <ul>
+                            <li>Add photos and virtual tours</li>
+                            <li>Update contact information quickly</li>
+                            <li>Highlight special programs and achievements</li>
+                            <li>Respond to reviews professionally</li>
+                        </ul>
+                        <p>
+                            Contact us at <a href="/contact">Contact Form</a> if you're interested in early access to this feature.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How are private schools handled?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            Independent/private schools are included but may have limited data because they:
+                        </p>
+                        <ul>
+                            <li>Aren't required to publish all performance data</li>
+                            <li>May not participate in standard assessments</li>
+                            <li>Have different inspection schedules</li>
+                        </ul>
+                        <p>
+                            We display all available public data and clearly mark when information is limited.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Can schools advertise on FindSchool.uk?
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>
+                            We maintain editorial independence and don't accept paid placements that would affect rankings or ratings. Schools interested in partnership opportunities should contact us to discuss:
+                        </p>
+                        <ul>
+                            <li>Enhanced profile features</li>
+                            <li>Open day announcements</li>
+                            <li>Sponsored content (clearly marked)</li>
+                        </ul>
+                        <p>
+                            All paid features are clearly distinguished from our objective data and ratings.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contact-banner">
+            <h2>Still Have Questions?</h2>
+            <p>Can't find what you're looking for? We're here to help!</p>
+            <a href="/contact" class="contact-btn">Contact Us</a>
+        </div>
+    </div>
+    
+    <div id="footer"></div>
+    
+    <script src="/js/main.js"></script>
+    <script>
+        function switchCategory(category) {
+            // Update buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.faq-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(category).classList.add('active');
+        }
+        
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const wasOpen = faqItem.classList.contains('open');
+            
+            // Close all items in the same section
+            element.closest('.faq-section').querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('open');
+            });
+            
+            // Toggle current item
+            if (!wasOpen) {
+                faqItem.classList.add('open');
+            }
+        }
+    </script>
+</body>
+</html>

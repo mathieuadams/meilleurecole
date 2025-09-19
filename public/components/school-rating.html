@@ -1,0 +1,724 @@
+<!-- school-rating.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">School Rating</h2>
+    <span class="info-icon" onclick="toggleRatingInfo()" title="How we calculate ratings">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- Main Rating Display -->
+  <div class="rating-display-container">
+    <div class="rating-score-container">
+      <div class="rating-score-box">
+        <div class="rating-number" id="mainRatingScore">-</div>
+      </div>
+    </div>
+    
+    <div class="rating-summary">
+      <h3 class="rating-title">FindSchool.uk Rating</h3>
+      <p class="rating-performance" id="ratingPerformance">
+        This school is performing <span id="performanceLevel">-</span> compared to other schools in 
+        <span id="localAuthority">-</span> with the same grade levels.
+      </p>
+      <div class="percentile-display" id="percentileDisplay" style="display: none;">
+        <span class="percentile-badge" id="percentileBadge">Top --%</span>
+        <span class="percentile-text">in local authority</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating Factors -->
+  <div class="rating-factors" id="ratingFactors">
+    <h3 class="factors-title">Rating Factors</h3>
+    
+    <!-- Ofsted Factor (hidden for Wales/Scotland) -->
+    <div class="factor-item" id="ofstedFactor" style="display: none;">
+      <div class="factor-header">
+        <div class="factor-icon ofsted">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+        </div>
+        <div class="factor-info">
+          <div class="factor-name">Ofsted Inspection</div>
+          <div class="factor-weight">40% weight</div>
+        </div>
+        <div class="factor-score">
+          <span id="ofstedScore">-</span>/10
+        </div>
+      </div>
+      <div class="factor-detail">
+        <span id="ofstedLabel">-</span>
+        <button class="expand-btn" onclick="toggleFactorDetail('ofsted')">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="factor-breakdown" id="ofstedBreakdown" style="display: none;">
+        <p class="breakdown-text">Latest inspection rating contributes to overall score</p>
+      </div>
+    </div>
+
+    <!-- Academic Performance Factor -->
+    <div class="factor-item" id="academicFactor" style="display: none;">
+      <div class="factor-header">
+        <div class="factor-icon academic">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14L20.24 7.45C20.43 7.29 20.54 7.06 20.54 6.82C20.54 6.32 20.14 5.92 19.64 5.92H4.36C3.86 5.92 3.46 6.32 3.46 6.82C3.46 7.06 3.57 7.29 3.76 7.45L12 14M5 18V10L12 15L19 10V18L12 23L5 18Z"/>
+          </svg>
+        </div>
+        <div class="factor-info">
+          <div class="factor-name">Academic Performance</div>
+          <div class="factor-weight" id="academicWeight">40% weight</div>
+        </div>
+        <div class="factor-score">
+          <span id="academicScore">-</span>/10
+        </div>
+      </div>
+      <div class="factor-detail">
+        <span id="academicComparison">-</span>
+        <button class="expand-btn" onclick="toggleFactorDetail('academic')">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="factor-breakdown" id="academicBreakdown" style="display: none;">
+        <div class="subject-scores">
+          <div class="subject-item" id="englishItem" style="display: none;">
+            <span class="subject-name">English</span>
+            <div class="comparison-bar">
+              <div class="bar-track">
+                <div class="bar-fill school" id="englishSchoolBar"></div>
+                <div class="bar-marker la" id="englishLAMarker"></div>
+              </div>
+            </div>
+            <span class="subject-value" id="englishValue">-</span>
+          </div>
+          <div class="subject-item" id="mathItem" style="display: none;">
+            <span class="subject-name">Math</span>
+            <div class="comparison-bar">
+              <div class="bar-track">
+                <div class="bar-fill school" id="mathSchoolBar"></div>
+                <div class="bar-marker la" id="mathLAMarker"></div>
+              </div>
+            </div>
+            <span class="subject-value" id="mathValue">-</span>
+          </div>
+          <div class="subject-item" id="scienceItem" style="display: none;">
+            <span class="subject-name">Science</span>
+            <div class="comparison-bar">
+              <div class="bar-track">
+                <div class="bar-fill school" id="scienceSchoolBar"></div>
+                <div class="bar-marker la" id="scienceLAMarker"></div>
+              </div>
+            </div>
+            <span class="subject-value" id="scienceValue">-</span>
+          </div>
+        </div>
+        <p class="breakdown-note">▼ Local Authority Average</p>
+      </div>
+    </div>
+
+    <!-- Attendance Factor -->
+    <div class="factor-item" id="attendanceFactor" style="display: none;">
+      <div class="factor-header">
+        <div class="factor-icon attendance">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/>
+          </svg>
+        </div>
+        <div class="factor-info">
+          <div class="factor-name">Attendance</div>
+          <div class="factor-weight" id="attendanceWeight">20% weight</div>
+        </div>
+        <div class="factor-score">
+          <span id="attendanceScore">-</span>/10
+        </div>
+      </div>
+      <div class="factor-detail">
+        <span id="attendanceRate">-</span>
+        <button class="expand-btn" onclick="toggleFactorDetail('attendance')">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <div class="factor-breakdown" id="attendanceBreakdown" style="display: none;">
+        <p class="breakdown-text">School attendance rate compared to local authority average</p>
+      </div>
+    </div>
+
+    <!-- Data Completeness Notice -->
+    <div class="data-notice" id="dataNotice" style="display: none;">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <span id="dataNoticeText">Rating based on partial data</span>
+    </div>
+  </div>
+
+  <!-- Rating Methodology (hidden by default) -->
+  <div class="rating-methodology" id="ratingMethodology" style="display: none;">
+    <h4>How We Calculate Ratings</h4>
+    <p>Our rating system evaluates schools on a 1-10 scale based on available data:</p>
+    <ul id="methodologyList">
+      <li><strong>Ofsted Inspection (40%):</strong> Latest official inspection rating</li>
+      <li><strong>Academic Performance (40%):</strong> Test scores compared to local authority average</li>
+      <li><strong>Attendance (20%):</strong> Student attendance rates compared to local average</li>
+    </ul>
+    <p class="methodology-note" id="methodologyNote">Schools need at least 40% of data available to receive a rating. Ratings are updated monthly.</p>
+  </div>
+</div>
+
+<style>
+.rating-display-container {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+  border-radius: 12px;
+}
+
+.rating-score-container {
+  flex-shrink: 0;
+}
+
+.rating-score-box {
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 3px solid;
+  border-color: var(--rating-color, #6b7280);
+}
+
+.rating-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.rating-max {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: -0.25rem;
+}
+
+.rating-summary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rating-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.rating-performance {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.rating-performance span {
+  font-weight: 600;
+  color: #111827;
+}
+
+.percentile-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.percentile-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.percentile-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.rating-factors {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.factors-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+.factor-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: white;
+}
+
+.factor-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.factor-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.factor-icon.ofsted {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.factor-icon.academic {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.factor-icon.attendance {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.factor-info {
+  flex: 1;
+}
+
+.factor-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.9375rem;
+}
+
+.factor-weight {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.factor-score {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.factor-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.expand-btn.expanded {
+  transform: rotate(180deg);
+}
+
+.factor-breakdown {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.subject-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.subject-item {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.subject-name {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.comparison-bar {
+  flex: 1;
+}
+
+.bar-track {
+  height: 20px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  position: relative;
+  overflow: visible;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.bar-marker {
+  position: absolute;
+  top: -8px;
+  width: 2px;
+  height: 36px;
+  background: #ef4444;
+}
+
+.bar-marker::before {
+  content: '▼';
+  position: absolute;
+  top: -12px;
+  left: -6px;
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.subject-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+}
+
+.breakdown-note {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.breakdown-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.data-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fef3c7;
+  border-radius: 6px;
+  margin-top: 1rem;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.rating-methodology {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.rating-methodology h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.rating-methodology ul {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.rating-methodology li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.methodology-note {
+  margin-top: 0.75rem;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.info-icon {
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.info-icon:hover {
+  color: #3b82f6;
+}
+
+.wales-notice, .scotland-notice {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .rating-display-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .subject-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .subject-name {
+    text-align: left;
+  }
+  
+  .subject-value {
+    text-align: left;
+  }
+}
+</style>
+
+<script>
+function toggleRatingInfo() {
+  const methodology = document.getElementById('ratingMethodology');
+  methodology.style.display = methodology.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleFactorDetail(factor) {
+  const breakdown = document.getElementById(`${factor}Breakdown`);
+  const btn = breakdown.previousElementSibling.querySelector('.expand-btn');
+  
+  if (breakdown.style.display === 'none') {
+    breakdown.style.display = 'block';
+    btn.classList.add('expanded');
+  } else {
+    breakdown.style.display = 'none';
+    btn.classList.remove('expanded');
+  }
+}
+
+function updateRatingDisplay(schoolData) {
+  if (!schoolData) return;
+  
+  // Check if it's a Wales or Scotland school
+  const isWales = schoolData.is_wales || (schoolData.country && schoolData.country.toLowerCase() === 'wales');
+  const isScotland = schoolData.is_scotland || (schoolData.country && schoolData.country.toLowerCase() === 'scotland');
+  
+  // Handle missing rating
+  if (!schoolData.overall_rating) {
+    document.getElementById('mainRatingScore').textContent = 'N/A';
+    document.getElementById('ratingPerformance').innerHTML = 'Insufficient data available for rating';
+    document.getElementById('dataNotice').style.display = 'flex';
+    document.getElementById('dataNoticeText').textContent = 'Not enough data to calculate rating';
+    return;
+  }
+  
+  const rating = parseInt(schoolData.overall_rating);
+  const components = schoolData.rating_components || [];
+  const percentile = schoolData.rating_percentile;
+  
+  // Update main rating display - show as integer
+  document.getElementById('mainRatingScore').textContent = rating;
+  
+  // Set color based on rating
+  const scoreBox = document.querySelector('.rating-score-box');
+  if (scoreBox) {
+    let borderColor = '#6b7280'; // gray default
+    if (rating >= 8) borderColor = '#10b981'; // green
+    else if (rating >= 6) borderColor = '#3b82f6'; // blue
+    else if (rating >= 4) borderColor = '#f59e0b'; // orange
+    else borderColor = '#ef4444'; // red
+    
+    scoreBox.style.borderColor = borderColor;
+    scoreBox.style.setProperty('--rating-color', borderColor);
+  }
+  
+  // Update performance text
+  let performanceLevel = 'at an average level';
+  if (rating >= 8) performanceLevel = 'above average';
+  else if (rating >= 6) performanceLevel = 'slightly above average';
+  else if (rating <= 4) performanceLevel = 'below average';
+  
+  document.getElementById('performanceLevel').textContent = performanceLevel;
+  
+  // Use actual local authority name
+  const laName = schoolData.address?.local_authority || schoolData.local_authority || 'the local authority';
+  document.getElementById('localAuthority').textContent = laName;
+  
+  // Update percentile if available (fix the 0% issue)
+  if (percentile !== null && percentile !== undefined && percentile > 0) {
+    document.getElementById('percentileDisplay').style.display = 'flex';
+    // Calculate the top percentage correctly
+    const topPercent = 100 - percentile;
+    document.getElementById('percentileBadge').textContent = `Top ${topPercent}%`;
+  } else {
+    // Hide percentile if not available or 0
+    document.getElementById('percentileDisplay').style.display = 'none';
+  }
+  
+  // Update methodology for Wales/Scotland schools
+  if (isWales) {
+    // Hide Ofsted factor for Wales
+    document.getElementById('ofstedFactor').style.display = 'none';
+    
+    // Update methodology text for Wales
+    const methodologyList = document.getElementById('methodologyList');
+    if (methodologyList) {
+      methodologyList.innerHTML = `
+        <li><strong>Academic Performance (80%):</strong> Test scores compared to local authority average</li>
+        <li><strong>Attendance (20%):</strong> Student attendance rates compared to local average</li>
+      `;
+    }
+    
+    const methodologyNote = document.getElementById('methodologyNote');
+    if (methodologyNote) {
+      methodologyNote.innerHTML = 'Note: Wales schools are not inspected by Ofsted. Estyn inspections are not currently included in our ratings. Ratings are based on academic performance and attendance data.';
+    }
+  } else if (isScotland) {
+    // Hide Ofsted factor for Scotland
+    document.getElementById('ofstedFactor').style.display = 'none';
+    
+    // Update methodology text for Scotland
+    const methodologyList = document.getElementById('methodologyList');
+    if (methodologyList) {
+      methodologyList.innerHTML = `
+        <li><strong>Academic Performance (60%):</strong> Test scores compared to local authority average</li>
+        <li><strong>Attendance (40%):</strong> Student attendance rates compared to local average</li>
+      `;
+    }
+    
+    const methodologyNote = document.getElementById('methodologyNote');
+    if (methodologyNote) {
+      methodologyNote.innerHTML = 'Note: Scotland schools are not inspected by Ofsted. Education Scotland inspections are not currently included in our ratings. Ratings are based on academic performance and attendance data.';
+    }
+  }
+  
+  // Update rating factors
+  components.forEach(component => {
+    if (component.name === 'ofsted' && !isWales && !isScotland) {
+      document.getElementById('ofstedFactor').style.display = 'block';
+      document.getElementById('ofstedScore').textContent = component.score.toFixed(1);
+      document.getElementById('ofstedLabel').textContent = component.label || 'Ofsted Rating';
+    } else if (component.name === 'academic') {
+      document.getElementById('academicFactor').style.display = 'block';
+      document.getElementById('academicScore').textContent = component.score.toFixed(1);
+      
+      // Update weight display for Wales/Scotland
+      if (isWales) {
+        document.getElementById('academicWeight').textContent = '80% weight';
+      } else if (isScotland) {
+        document.getElementById('academicWeight').textContent = '60% weight';
+      } else {
+        document.getElementById('academicWeight').textContent = '40% weight';
+      }
+      
+      // Update subject breakdowns if available
+      if (component.details) {
+        if (component.details.english) {
+          document.getElementById('englishItem').style.display = 'grid';
+          document.getElementById('englishValue').textContent = `${component.details.english.school || 0}%`;
+          document.getElementById('englishSchoolBar').style.width = `${component.details.english.school || 0}%`;
+          document.getElementById('englishLAMarker').style.left = `${component.details.english.la_avg || 50}%`;
+        }
+        if (component.details.math) {
+          document.getElementById('mathItem').style.display = 'grid';
+          document.getElementById('mathValue').textContent = `${component.details.math.school || 0}%`;
+          document.getElementById('mathSchoolBar').style.width = `${component.details.math.school || 0}%`;
+          document.getElementById('mathLAMarker').style.left = `${component.details.math.la_avg || 50}%`;
+        }
+        if (component.details.science) {
+          document.getElementById('scienceItem').style.display = 'grid';
+          document.getElementById('scienceValue').textContent = `${component.details.science.school || 0}%`;
+          document.getElementById('scienceSchoolBar').style.width = `${component.details.science.school || 0}%`;
+          document.getElementById('scienceLAMarker').style.left = `${component.details.science.la_avg || 50}%`;
+        } else if (isScotland) {
+          // Hide science for Scotland schools
+          document.getElementById('scienceItem').style.display = 'none';
+        }
+      }
+      
+      let comparisonText = 'Test scores ';
+      if (component.score >= 7) comparisonText += 'above LA average';
+      else if (component.score >= 5) comparisonText += 'near LA average';
+      else comparisonText += 'below LA average';
+      document.getElementById('academicComparison').textContent = comparisonText;
+    } else if (component.name === 'attendance') {
+      document.getElementById('attendanceFactor').style.display = 'block';
+      document.getElementById('attendanceScore').textContent = component.score.toFixed(1);
+      document.getElementById('attendanceRate').textContent = `${component.school_rate?.toFixed(1) || '-'}% attendance rate`;
+      
+      // Update weight display for Wales/Scotland
+      if (isWales) {
+        document.getElementById('attendanceWeight').textContent = '20% weight';
+      } else if (isScotland) {
+        document.getElementById('attendanceWeight').textContent = '40% weight';
+      } else {
+        document.getElementById('attendanceWeight').textContent = '20% weight';
+      }
+    }
+  });
+  
+  // Show data completeness notice if not 100%
+  if (schoolData.rating_data_completeness && schoolData.rating_data_completeness < 100) {
+    document.getElementById('dataNotice').style.display = 'flex';
+    document.getElementById('dataNoticeText').textContent = 
+      `Rating based on ${schoolData.rating_data_completeness}% of available data`;
+  } else {
+    document.getElementById('dataNotice').style.display = 'none';
+  }
+}
+
+// Listen for school data loaded event
+window.addEventListener('schoolDataLoaded', function(e) {
+  if (e.detail) {
+    updateRatingDisplay(e.detail);
+  }
+});
+
+// Also check if data is already available
+if (window.currentSchoolData) {
+  updateRatingDisplay(window.currentSchoolData);
+}
+</script>
