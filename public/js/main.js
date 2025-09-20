@@ -1,4 +1,4 @@
-// Main JavaScript for FindSchool.uk
+// Main JavaScript pour MeilleureEcole.fr
 
 // API Base URL - automatically uses the same domain
 const API_BASE_URL = '/api';
@@ -588,16 +588,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const type = this.dataset.type;
                 switch(type) {
                     case 'postcode':
-                        searchInput.placeholder = 'Enter postcode (e.g., SW1A 1AA)...';
+                        searchInput.placeholder = "Saisissez un code postal (ex. 75001)...";
                         break;
                     case 'name':
-                        searchInput.placeholder = 'Enter school name...';
+                        searchInput.placeholder = "Saisissez le nom d'un etablissement...";
                         break;
                     case 'location':
-                        searchInput.placeholder = 'Enter city or town...';
+                        searchInput.placeholder = "Saisissez une ville ou une commune...";
                         break;
                     default:
-                        searchInput.placeholder = 'Enter postcode, school name, or location...';
+                        searchInput.placeholder = "Saisissez un code postal, un etablissement ou une ville...";
                 }
             }
         });
@@ -634,7 +634,7 @@ async function loadSchoolData(urn) {
             updateNearbySchools(nearbyData.nearby_schools);
         }
     } catch (error) {
-        console.error('Error loading school data:', error);
+        console.error('Erreur lors du chargement des donnees etablissement:', error);
     }
 }
 
@@ -675,7 +675,7 @@ function updateSchoolProfile(school) {
     if (typeof updateSchoolMeta === 'function') {
         updateSchoolMeta(school);
     } else {
-        document.title = `${school.name} School Profile | FindSchool.uk`;
+        document.title = `${school.name} | Profil etablissement | MeilleureEcole.fr`;
     }
 }
 
@@ -683,7 +683,7 @@ function updateSchoolProfile(school) {
 function updatePerformanceData(performance) {
     // This would update the performance grid based on the school's phase
     // Implementation depends on your specific HTML structure
-    console.log('Performance data:', performance);
+    console.log('Donnees de performance:', performance);
 }
 
 // Update nearby schools list

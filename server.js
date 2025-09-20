@@ -39,7 +39,7 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: 'Too many requests from this IP, please try again later.',
+  message: 'Trop de requetes depuis cette adresse IP. Merci de reessayer plus tard.',
 });
 app.use('/api/', limiter);
 
@@ -64,21 +64,21 @@ app.get('/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
     res.status(200).json({
-      status: 'healthy',
+      status: 'en_bonne_sante',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      database: 'connected',
+      environment: process.env.NODE_ENV || 'developpement',
+      database: 'connectee',
     });
   } catch (err) {
-    console.error('Health check failed:', err);
-    res.status(503).json({ status: 'unhealthy', error: 'Database connection failed' });
+    console.error('Verification de sante echouee :', err);
+    res.status(503).json({ status: 'hors_service', erreur: 'La connexion a la base de donnees a echoue' });
   }
 });
 
 // ---- API Welcome
 app.get('/api', (_req, res) => {
   res.json({
-    message: 'Welcome to FindSchool.uk API',
+    message: "Bienvenue sur l'API Meilleure Ecole",
     version: '1.0.0',
     endpoints: {
       health: '/health',
@@ -197,14 +197,14 @@ app.get('/education-glossary', (_req, res) => {
 });
 
 // ---- City routing
-const ukCities = new Set([
-  'london','birmingham','glasgow','liverpool','bristol','manchester',
-  'sheffield','leeds','edinburgh','leicester','coventry','bradford',
-  'cardiff','belfast','nottingham','kingston-upon-hull','newcastle',
-  'stoke-on-trent','southampton','portsmouth','derby','plymouth',
-  'wolverhampton','swansea','milton-keynes','northampton','york',
-  'oxford','cambridge','norwich','brighton','bath','canterbury',
-  'exeter','chester','durham','salisbury','lancaster','worcester','lincoln'
+const frenchCities = new Set([
+  'paris','marseille','lyon','toulouse','nice','nantes',
+  'montpellier','strasbourg','bordeaux','lille','rennes','reims',
+  'saint-etienne','toulon','grenoble','dijon','angers','nimes',
+  'villeurbanne','clermont-ferrand','le-havre','metz','besancon','orleans',
+  'mulhouse','rouen','caen','perpignan','nancy','avignon',
+  'poitiers','versailles','pau','limoges','amiens','tourcoing',
+  'boulogne-billancourt','colmar','tours','creteil','antibes','annecy'
 ]);
 
 // Serve city page at /:city (static SEO-friendly path)
@@ -401,9 +401,9 @@ app.get('/api/local-authority/:laName/summary', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error fetching LA summary:', error);
+    console.error("Erreur lors de la recuperation du resume de l'autorite locale :", error);
     res.status(500).json({ 
-      error: 'Failed to fetch local authority summary',
+      error: "Echec de recuperation du resume de l'autorite locale",
       message: error.message 
     });
   }
@@ -440,7 +440,7 @@ app.get('/school/:identifier', async (req, res) => {
       }
     }
   } catch (err) {
-    console.warn('Failed to resolve school slug for', urn, err.message);
+    console.warn("Echec de generation du slug pour l'etablissement", urn, err.message);
   }
 
   return sendPublic(res, 'school.html');
@@ -455,7 +455,7 @@ app.get('/:city/:schoolIdentifier', (req, res, next) => {
     'health','compare','about','search'
   ]);
   if (reserved.has(city.toLowerCase())) return next();
-  if (!ukCities.has(city.toLowerCase())) return next();
+  if (!frenchCities.has(city.toLowerCase())) return next();
   return sendPublic(res, 'school.html');
 });
 
@@ -463,16 +463,16 @@ app.get('/:city/:schoolIdentifier', (req, res, next) => {
 app.get('*', (req, res) => {
   // If an unknown API route: proper 404 JSON
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API endpoint not found', path: req.path });
+    return res.status(404).json({ erreur: "Point d'API introuvable", chemin: req.path });
   }
   // For unknown front-end paths, return 404
   return res.status(404).send(`
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="fr">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>404 - Page Not Found</title>
+      <title>404 - Page introuvable</title>
       <style>
         body {
           font-family: 'Inter', -apple-system, sans-serif;
@@ -507,8 +507,8 @@ app.get('*', (req, res) => {
     <body>
       <div class="container">
         <h1>404</h1>
-        <p>Page not found</p>
-        <a href="/">Go to Homepage</a>
+        <p>Page introuvable</p>
+        <a href="/">Retour a l'accueil</a>
       </div>
     </body>
     </html>
@@ -517,9 +517,9 @@ app.get('*', (req, res) => {
 
 // ---- Error handler
 app.use((err, _req, res, _next) => {
-  console.error('Error:', err.stack);
+  console.error('Erreur serveur :', err.stack);
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
+    erreur: err.message || 'Erreur interne du serveur',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
@@ -527,19 +527,19 @@ app.use((err, _req, res, _next) => {
 // ---- Start server
 const startServer = async () => {
   try {
-    console.log('🔍 Testing database connection...');
+    console.log('Verification de la connexion a la base de donnees...');
     await testConnection();
-    console.log('✅ Database connected successfully');
+    console.log('Connexion a la base de donnees etablie.');
 
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🔗 Health:  http://localhost:${PORT}/health`);
-      console.log(`📚 API:     http://localhost:${PORT}/api`);
-      console.log(`🌐 Website: http://localhost:${PORT}`);
+      console.log(`Serveur demarre sur le port ${PORT}`);
+      console.log(`Sante : http://localhost:${PORT}/health`);
+      console.log(`API : http://localhost:${PORT}/api`);
+      console.log(`Site web : http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error.message);
-    console.error('Check your DATABASE_URL environment variable.');
+    console.error('Impossible de demarrer le serveur :', error.message);
+    console.error("Verifiez la variable d'environnement DATABASE_URL.");
     process.exit(1);
   }
 };
@@ -548,7 +548,7 @@ startServer();
 
 // ---- Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Closing connections...');
+  console.log('SIGTERM recu. Fermeture des connexions...');
   try { await pool.end(); } catch {}
   process.exit(0);
 });
