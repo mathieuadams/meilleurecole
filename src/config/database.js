@@ -1,84 +1,91 @@
 const { Pool } = require('pg');
 
-// Get database URL from environment variable
-const DATABASE_URL = process.env.DATABASE_URL;
+const DEFAULT_DATABASE_URL = 'postgresql://school_platform_db_fr_user:cDW1EB5Ah6x9KCguituTxOs63EZlXgnV@dpg-d37b0r6r433s73ejel20-a.oregon-postgres.render.com/school_platform_db_fr';
+const DATABASE_URL = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
 
-if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL environment variable is not set!');
-  console.error('Please add it in Render dashboard or .env file for local development');
-  process.exit(1);
+if (!process.env.DATABASE_URL) {
+  console.warn('Utilisation de la connexion PostgreSQL francaise par defaut. Definissez DATABASE_URL pour la remplacer.');
 }
 
-// Log connection info (without password)
 const dbInfo = DATABASE_URL.split('@')[1]?.split('/');
 if (dbInfo) {
-  console.log(`📊 Connecting to database: ${dbInfo[1]} on ${dbInfo[0].split('.')[0]}...`);
+  const host = dbInfo[0]?.split('.')?.[0] || 'instance';
+  console.log(`Connexion a la base de donnees : ${dbInfo[1]} sur ${host}...`);
 }
 
-// Configure connection pool with proper SSL settings for Render
 const poolConfig = {
   connectionString: DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false  // Required for Render PostgreSQL
+    rejectUnauthorized: false
   },
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // How long a client is allowed to remain idle
-  connectionTimeoutMillis: 10000, // How long to wait for connection
-  statement_timeout: 30000, // Timeout for statements
-  query_timeout: 30000, // Timeout for queries
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  statement_timeout: 30000,
+  query_timeout: 30000,
 };
 
-// Create the pool
 const pool = new Pool(poolConfig);
 
-// Handle pool errors
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle PostgreSQL client:', err);
+pool.on('error', (err) => {
+  console.error('Erreur inattendue sur un client PostgreSQL inactif :', err);
 });
 
 pool.on('connect', () => {
-  console.log('New client connected to PostgreSQL pool');
+  console.log('Nouveau client connecte au pool PostgreSQL');
 });
 
-// Test connection function
+const resolveSchoolTable = async (client) => {
+  const { rows } = await client.query(`
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_type = 'BASE TABLE'
+      AND table_name ILIKE '%school%'
+    ORDER BY CASE
+      WHEN table_name = 'fr_schools' THEN 0
+      WHEN table_name = 'schools' THEN 1
+      WHEN table_name = 'uk_schools' THEN 2
+      ELSE 3
+    END, table_name
+    LIMIT 1
+  `);
+
+  return rows[0]?.table_name || null;
+};
+
 const testConnection = async () => {
   let client;
   try {
     client = await pool.connect();
-    
-    // Test basic connection
+
     const timeResult = await client.query('SELECT NOW() as current_time');
-    console.log('✅ Database connection test passed at:', timeResult.rows[0].current_time);
-    
-    // Check if uk_schools table exists and has data
-    const tableCheck = await client.query(`
-      SELECT 
-        COUNT(*) as school_count,
-        (SELECT COUNT(*) FROM information_schema.tables 
-         WHERE table_schema = 'public' 
-         AND table_name LIKE 'uk_%') as table_count
-      FROM uk_schools
-      LIMIT 1
-    `);
-    
-    console.log(`📚 Database stats:`);
-    console.log(`   - Tables found: ${tableCheck.rows[0].table_count}`);
-    console.log(`   - Schools in database: ${tableCheck.rows[0].school_count}`);
-    
+    console.log('Test de connexion reussi a :', timeResult.rows[0].current_time);
+
+    const schoolTable = await resolveSchoolTable(client);
+    if (schoolTable) {
+      const { rows } = await client.query(`SELECT COUNT(*)::int AS school_count FROM ${schoolTable}`);
+      console.log('Statistiques de la base de donnees :');
+      console.log(`   - Table ecoles : ${schoolTable}`);
+      console.log(`   - Etablissements scolaires : ${rows[0].school_count}`);
+    } else {
+      console.warn("Aucune table d'etablissements trouvee (pattern %school%).");
+    }
+
     return true;
   } catch (err) {
-    console.error('❌ Database connection test failed:', err.message);
-    
+    console.error('Echec du test de connexion a la base de donnees :', err.message);
+
     if (err.code === '42P01') {
-      console.error('Table "uk_schools" does not exist. Please import your database schema.');
+      console.error("La table d'ecoles attendue est absente. Importez la structure de donnees francaise.");
     } else if (err.code === 'ECONNREFUSED') {
-      console.error('Could not connect to database. Check your DATABASE_URL.');
+      console.error('Connexion refusee. Verifiez la valeur de DATABASE_URL.');
     } else if (err.code === '28P01') {
-      console.error('Authentication failed. Check your database credentials.');
-    } else if (err.message.includes('SSL')) {
-      console.error('SSL connection issue. Make sure SSL is properly configured.');
+      console.error("Echec de l'authentification. Controlez vos identifiants.");
+    } else if (err.message?.includes('SSL')) {
+      console.error('Probleme SSL detecte. Verifiez la configuration SSL.');
     }
-    
+
     throw err;
   } finally {
     if (client) {
@@ -87,44 +94,39 @@ const testConnection = async () => {
   }
 };
 
-// Query wrapper with error handling and logging
 const query = async (text, params) => {
   const start = Date.now();
   try {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
-    
-    // Log slow queries in development
+
     if (process.env.NODE_ENV === 'development' && duration > 1000) {
-      console.log('⚠️ Slow query detected:', {
-        query: text.substring(0, 100),
-        duration: `${duration}ms`,
-        rows: result.rowCount
+      console.log('Requete lente detectee :', {
+        requete: text.substring(0, 100),
+        duree: `${duration}ms`,
+        lignes: result.rowCount,
       });
     }
-    
+
     return result;
   } catch (error) {
-    console.error('Query error:', {
-      error: error.message,
-      query: text.substring(0, 100),
-      code: error.code
+    console.error('Erreur lors de la requete :', {
+      erreur: error.message,
+      requete: text.substring(0, 100),
+      code: error.code,
     });
     throw error;
   }
 };
 
-// Get a client from the pool (for transactions)
 const getClient = async () => {
-  const client = await pool.connect();
-  return client;
+  return pool.connect();
 };
 
-// Close all connections (for graceful shutdown)
 const closePool = async () => {
-  console.log('Closing database connection pool...');
+  console.log('Fermeture du pool de connexions PostgreSQL...');
   await pool.end();
-  console.log('Database connections closed.');
+  console.log('Connexions a la base de donnees fermees.');
 };
 
 module.exports = {
@@ -132,5 +134,5 @@ module.exports = {
   query,
   testConnection,
   getClient,
-  closePool
+  closePool,
 };

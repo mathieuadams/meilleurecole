@@ -1,561 +1,559 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DVKE6J0Z2Z"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-DVKE6J0Z2Z');
   </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FindSchool.uk | Compare UK School Ratings, Ofsted Reports & Reviews</title>
-  <meta name="description" content="FindSchool.uk helps families discover the best UK schools with trusted ratings, Ofsted inspection outcomes, parent reviews, and local insights across England, Scotland, Wales and Northern Ireland." />
-  <meta name="robots" content="index,follow" />
-  <meta name="author" content="FindSchool.uk Editorial Team" />
-  <meta name="keywords" content="UK school ratings, Ofsted reports, school reviews, find schools, best schools UK" />
-  <link rel="canonical" href="https://www.findschool.uk/" />
-  <link rel="alternate" href="https://www.findschool.uk/" hreflang="en-gb" />
+  <link rel="alternate" href="https://www.meilleureecole.fr/" hreflang="fr-fr" />
+  <link rel="alternate" href="https://www.meilleureecole.fr/" hreflang="x-default" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <meta name="theme-color" content="#2563eb" />
-  <meta property="og:site_name" content="FindSchool.uk" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="FindSchool.uk | Compare UK School Ratings, Ofsted Reports & Reviews" />
-  <meta property="og:description" content="Discover the best UK schools with FindSchool.uk. Explore Ofsted reports, performance data, catchment insights and parent reviews in one trusted platform." />
-  <meta property="og:url" content="https://www.findschool.uk/" />
-  <meta property="og:image" content="https://www.findschool.uk/images/findschool-social.png" />
-  <meta property="og:image:alt" content="FindSchool.uk social preview card" />
-  <meta property="og:locale" content="en_GB" />
-  <meta property="og:see_also" content="https://www.ukschoolratings.co.uk/" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="FindSchool.uk | Compare UK School Ratings, Ofsted Reports & Reviews" />
-  <meta name="twitter:description" content="FindSchool.uk brings together Ofsted ratings, performance data and parent reviews to help you choose the right school." />
-  <meta name="twitter:image" content="https://www.findschool.uk/images/findschool-social.png" />
-  <meta name="twitter:image:alt" content="FindSchool.uk social preview card" />
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "name": "FindSchool.uk",
-          "url": "https://www.findschool.uk/",
-          "alternateName": "UK School Ratings",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://www.findschool.uk/search.html?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
-        },
-        {
-          "@type": "Organization",
-          "name": "FindSchool.uk",
-          "url": "https://www.findschool.uk/",
-          "logo": "https://www.findschool.uk/favicon.ico",
-          "sameAs": [
-            "https://www.ukschoolratings.co.uk/"
-          ]
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "MeilleureEcole.fr",
+        "url": "https://www.meilleureecole.fr/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://www.meilleureecole.fr/search?q={search_term}",
+          "query-input": "required name=search_term"
         }
-      ]
-    }
+      },
+      {
+        "@type": "Organization",
+        "name": "MeilleureEcole.fr",
+        "url": "https://www.meilleureecole.fr/",
+        "logo": "https://www.meilleureecole.fr/favicon.ico"
+      }
+    ]
+  }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="/css/styles.css">
-    
-    <style>
-        /* Homepage specific styles */
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 4rem 0 5rem;
-            color: white;
-        }
-        
-        .hero-content {
-            text-align: center;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.25rem;
-            opacity: 0.95;
-            margin-bottom: 3rem;
-        }
-        
-        .search-container {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .search-label {
-            color: #374151;
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: block;
-        }
-        
-        .search-main {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .search-input-group {
-            flex: 1;
-            position: relative;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-        
-        .search-btn {
-            padding: 1rem 2rem;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        
-        .search-btn:hover {
-            background: #1e40af;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-        
-        .search-hint {
-            margin-top: 0.75rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        /* Info Section */
-        .info-section {
-            padding: 4rem 0;
-            background: #f9fafb;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-        
-        .info-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .info-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        }
-        
-        .info-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-        }
-        
-        .info-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #1f2937;
-        }
-        
-        .info-desc {
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-        .about-explain {
-            padding: 4rem 0 3rem;
-            background: white;
-        }
-
-        .about-wrapper {
-            max-width: 960px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .about-wrapper h2 {
-            font-size: 2.25rem;
-            color: #111827;
-            margin-bottom: 1rem;
-        }
-
-        .about-wrapper p {
-            font-size: 1.125rem;
-            color: #4b5563;
-            line-height: 1.8;
-        }
-
-        .about-points {
-            margin-top: 2.5rem;
-            display: grid;
-            gap: 1.5rem;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        }
-
-        .about-point {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 1.75rem;
-            text-align: left;
-            box-shadow: 0 10px 20px rgba(148, 163, 184, 0.12);
-        }
-
-        .about-point h3 {
-            font-size: 1.25rem;
-            color: #1f2937;
-            margin-bottom: 0.75rem;
-        }
-
-        .about-point p {
-            font-size: 1rem;
-            color: #4b5563;
-            line-height: 1.7;
-        }
-
-        .about-point span {
-            font-size: 2rem;
-            display: block;
-            margin-bottom: 0.75rem;
-        }
-        
-        /* Browse Section */
-        .browse-section {
-            padding: 4rem 0;
-        }
-        
-        .browse-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .browse-card {
-            padding: 1.5rem;
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        
-        .browse-card:hover {
-            border-color: #2563eb;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .browse-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2563eb;
-            margin-bottom: 0.25rem;
-        }
-        
-        .browse-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        /* Cities Section */
-        .cities-section {
-            padding: 4rem 0;
-            background: #f9fafb;
-        }
-        
-        .cities-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .cities-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.5rem;
-        }
-        
-        .cities-subtitle {
-            color: #6b7280;
-        }
-        
-        .cities-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 0.5rem;
-        }
-        
-        .city-link {
-            padding: 0.75rem 1rem;
-            color: #374151;
-            text-decoration: none;
-            transition: all 0.2s;
-            display: block;
-            border-radius: 6px;
-        }
-        
-        .city-link:hover {
-            background: white;
-            color: #2563eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .search-main {
-                flex-direction: column;
-            }
-            
-            .cities-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeilleureEcole.fr | Rechercher un etablissement scolaire en France</title>
+  <meta name="description" content="MeilleureEcole.fr accompagne les familles pour comparer les etablissements scolaires en France grace a des indicateurs fiables, des avis et des ressources pratiques." />
+  <meta name="robots" content="index,follow" />
+  <meta name="author" content="Equipe MeilleureEcole.fr" />
+  <meta name="keywords" content="ecole, college, lycee, avis parents, classement, education nationale" />
+  <link rel="canonical" href="https://www.meilleureecole.fr/" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta property="og:site_name" content="MeilleureEcole.fr" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="MeilleureEcole.fr | Rechercher un etablissement scolaire en France" />
+  <meta property="og:description" content="Comparez les etablissements scolaires en France et trouvez celui qui correspond a votre projet familial." />
+  <meta property="og:url" content="https://www.meilleureecole.fr/" />
+  <meta property="og:image" content="/images/meilleure-ecole-social.png" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MeilleureEcole.fr | Rechercher un etablissement scolaire en France" />
+  <meta name="twitter:description" content="Un moteur de recherche pour comparer les etablissements scolaires francais selon vos criteres." />
+  <meta name="twitter:image" content="/images/meilleure-ecole-social.png" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .hero-section {
+      background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+      padding: 4rem 0 5rem;
+      color: #fff;
+    }
+    .hero-section .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .hero-content {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 3rem;
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+    .hero-subtitle {
+      font-size: 1.125rem;
+      opacity: 0.95;
+      margin-bottom: 2rem;
+    }
+    .search-container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .search-label {
+      color: #1f2937;
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .search-main {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .search-input-group {
+      flex: 1;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+    }
+    .search-btn {
+      padding: 1rem 2rem;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .search-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+    }
+    .search-hint {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: #e0e7ff;
+      text-align: center;
+    }
+    .suggestions {
+      margin-top: 0.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+    }
+    .suggestions.active {
+      display: block;
+    }
+    .suggest-group {
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .suggest-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-top: 1px solid #f3f4f6;
+    }
+    .suggest-item:hover,
+    .suggest-item.active {
+      background: #eef2ff;
+    }
+    .suggest-item__text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+    .suggest-item__primary {
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .suggest-item__secondary {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .suggest-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+    }
+    .suggest-empty {
+      padding: 1rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    .info-section {
+      padding: 4rem 0;
+      background: #f9fafb;
+    }
+    .info-section .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+      margin-top: 2.5rem;
+    }
+    .info-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .info-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+    }
+    .info-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #1f2937;
+    }
+    .info-text {
+      color: #4b5563;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    .cta-section {
+      padding: 4rem 0;
+      background: #fff;
+    }
+    .cta-inner {
+      max-width: 840px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 3rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(67,56,202,0.12));
+    }
+    .cta-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 1rem;
+    }
+    .cta-text {
+      color: #4b5563;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .cta-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.85rem 1.8rem;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta-link.primary {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+    .cta-link.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
+    }
+    .cta-link.secondary {
+      background: #fff;
+      color: #2563eb;
+      border: 2px solid rgba(37, 99, 235, 0.3);
+    }
+    .cta-link.secondary:hover {
+      border-color: #2563eb;
+      transform: translateY(-1px);
+    }
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2.25rem;
+      }
+      .search-main {
+        flex-direction: column;
+      }
+      .search-btn {
+        width: 100%;
+      }
+      .cta-inner {
+        padding: 2rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="header"></div>
-
-  <section class="hero-section">
-    <div class="container">
-      <div class="hero-content">
-        <h1 class="hero-title">Find the Right School for Your Child</h1>
-        <p class="hero-subtitle">Search among 20,000+ UK, Scotland, Wales and Northen Irland schools to find the perfect match</p>
-
+  <main>
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">Trouvez l'etablissement qui correspond a votre famille</h1>
+          <p class="hero-subtitle">Analysez les etablissements scolaires francais selon les indicateurs officiels, les resultats et les retours d'experience des parents.</p>
+        </div>
         <div class="search-container">
-          <label class="search-label">Find a great school</label>
-          <form class="search-main" onsubmit="performSearch(event)">
-            <div class="search-input-group">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-            </svg>
-            <input id="mainSearchInput" class="search-input" type="text"
-                    placeholder="Enter school name, postcode, or city..." required autocomplete="off"/>
-            <!-- ⬇️ new -->
-            <div id="searchSuggestions" class="autosuggest hidden" role="listbox" aria-label="Search suggestions"></div>
+          <form id="heroSearchForm" onsubmit="performSearch(event)">
+            <label class="search-label" for="mainSearchInput">Rechercher par nom, ville ou code postal</label>
+            <div class="search-main">
+              <div class="search-input-group">
+                <span class="search-icon" aria-hidden="true">??</span>
+                <input type="text" id="mainSearchInput" class="search-input" placeholder="Saisissez le nom d'un etablissement ou une ville" autocomplete="off" />
+                <div id="searchSuggestions" class="suggestions" role="listbox" aria-expanded="false"></div>
+              </div>
+              <button type="submit" class="search-btn">Lancer la recherche</button>
             </div>
-            <button type="submit" class="search-btn">Search</button>
           </form>
-          <div class="search-hint">Try: "Westminster Academy" or "SW1A 1AA" or "London"</div>
+          <p class="search-hint">Exemples : "College Jules Verne", "75015", "Lyon"</p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="about-explain">
-    <div class="about-wrapper">
-      <h2>Helping every family make confident school choices</h2>
-      <p>
-        FindSchool.uk brings together trusted government data, inspection reports, attendance insights,
-        and moderated parent reviews so you can understand the full story behind every UK school.
-        Whether you are comparing academies in England, looking at Gaelic primaries in Scotland,
-        or researching SEND provision across Wales and Northern Ireland, we highlight the evidence that matters.
-      </p>
-      <div class="about-points">
-        <div class="about-point">
-          <span>📊</span>
-          <h3>Transparent performance data</h3>
-          <p>
-            Track attainment, progress and attendance with nation-sensitive scoring so you can compare like for like.
-            Our methodology explains every rating in plain English.
-          </p>
-        </div>
-        <div class="about-point">
-          <span>🧭</span>
-          <h3>Context for every community</h3>
-          <p>
-            Browse by town, local authority or postcode to see nearby options, Ofsted history, catchment details and transport links.
-          </p>
-        </div>
-        <div class="about-point">
-          <span>💬</span>
-          <h3>Real parent perspectives</h3>
-          <p>
-            Read and contribute balanced reviews that are carefully moderated to keep guidance constructive and respectful.
-          </p>
+    <section class="info-section">
+      <div class="container">
+        <h2 class="section-title" style="text-align:center; font-size:2rem; font-weight:700; color:#1f2937;">Une vision claire pour choisir sereinement</h2>
+        <p style="text-align:center; color:#4b5563; max-width:760px; margin:0.75rem auto 0; font-size:1rem;">MeilleureEcole.fr rassemble les donnees publiques et des temoignages recents pour proposer une synthese rapide et transparente de chaque etablissement.</p>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3 class="info-title">Indicateurs officiels</h3>
+            <p class="info-text">Resultats aux examens, effectifs, dispositifs d'accompagnement et informations ministerielles mis a jour reguli�rement.</p>
+          </article>
+          <article class="info-card">
+            <h3 class="info-title">Recherche intelligente</h3>
+            <p class="info-text">Filtres par localisation, niveau, statut ou options pedagogiques pour cibler rapidement les etablissements adaptes.</p>
+          </article>
+          <article class="info-card">
+            <h3 class="info-title">Avis des familles</h3>
+            <p class="info-text">Partagez et consultez des retours authentiques pour comprendre l'ambiance de vie scolaire et l'engagement pedagogique.</p>
+          </article>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Cities moved to footer -->
-
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-inner">
+          <h2 class="cta-title">Envie de contribuer a la communaute MeilleureEcole ?</h2>
+          <p class="cta-text">Deposez un avis sur l'etablissement de vos enfants ou contactez notre equipe pour enrichir les donnees locales.</p>
+          <div class="cta-actions">
+            <a class="cta-link primary" href="/write-review">Partager un avis</a>
+            <a class="cta-link secondary" href="/contact">Proposer une mise a jour</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
   <div id="footer"></div>
-
-  <script src="/js/main.js"></script>
+  <script src="/js/main.js" defer></script>
   <script>
-  // ---- tiny utils ----
-  const slug = s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-  const debounce = (fn, d=200) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d);} };
-  const pcRe = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
+    const slug = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const debounce = (fn, delay = 200) => {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+      };
+    };
 
-  const inputEl = document.getElementById('mainSearchInput');
-  const sugEl   = document.getElementById('searchSuggestions');
-  let active = -1, items = [], aborter = null;
-
-  function hideSug(){ sugEl.classList.add('hidden'); active = -1; items = []; }
-  function showSug(){ sugEl.classList.remove('hidden'); }
-
-  function navToSuggestion(s) {
-    if (!s) return;
-    if (s.type === 'school')      window.location.href = window.schoolPath ? window.schoolPath(s) : `/school/${s.urn}`;
-    else if (s.type === 'city')   window.location.href = `/${slug(s.town)}`;
-    else if (s.type === 'la')     window.location.href = `/search?q=${encodeURIComponent(s.local_authority)}&type=la`;
-    else if (s.type === 'pc')     window.location.href = `/search?q=${encodeURIComponent(s.postcode)}&type=postcode`;
-    else                          performSearch(new Event('submit')); // fallback
-  }
-
-  // Render suggestions (grouped)
-  function renderSuggestions(data){
-    const groups = [];
-const add = (title, arr, render) => {
-        if (!arr || !arr.length) return;
-        groups.push(`<div class="suggest-group">${title}</div>`);
-        arr.forEach((s, i) => {
-            const ix = items.length + i;
+    const suggestions = {
+      container: document.getElementById('searchSuggestions'),
+      data: [],
+      activeIndex: -1,
+      reset() {
+        this.data = [];
+        this.activeIndex = -1;
+        this.container.innerHTML = '';
+        this.container.classList.remove('active');
+        this.container.setAttribute('aria-expanded', 'false');
+      },
+      render({ schools = [], cities = [], authorities = [], postcodes = [] } = {}) {
+        const groups = [];
+        this.data = [];
+        const pushGroup = (title, items, formatter) => {
+          if (!items || !items.length) return;
+          groups.push(`<div class="suggest-group">${title}</div>`);
+          items.forEach((item) => {
+            const index = this.data.length;
+            this.data.push(item);
             groups.push(`
-            <div class="suggest-item" role="option" data-index="${ix}">
+              <div class="suggest-item" role="option" data-index="${index}">
                 <div class="suggest-item__text">
-                <div class="suggest-item__primary">${render(s)}</div>
-                ${s.type==='school'
-                    ? `<div class="suggest-item__secondary">${[s.town, s.postcode].filter(Boolean).join(' • ')}</div>`
-                    : `<div class="suggest-item__secondary">${s.text || ''}</div>`}
+                  <div class="suggest-item__primary">${formatter(item)}</div>
+                  <div class="suggest-item__secondary">${item.type === 'school' ? [item.town, item.postcode].filter(Boolean).join(' � ') : (item.text || '')}</div>
                 </div>
-                ${s.type==='school' && s.overall_rating!=null
-                ? `<div class="suggest-badge">${Number(s.overall_rating).toFixed(1)}/10</div>`
-                : ''}
-            </div>`);
+                ${item.type === 'school' && item.overall_rating != null ? `<div class="suggest-badge">${Number(item.overall_rating).toFixed(1)}/10</div>` : ''}
+              </div>
+            `);
+          });
+        };
+
+        pushGroup('ECOLES', schools, (item) => item.name);
+        pushGroup('VILLES', cities, (item) => item.town);
+        pushGroup('ACADEMIES', authorities, (item) => item.local_authority);
+        pushGroup('CODES POSTAUX', postcodes, (item) => item.postcode);
+
+        if (!groups.length) {
+          this.container.innerHTML = '<div class="suggest-empty">Aucun resultat. Appuyez sur Entree pour lancer la recherche.</div>';
+        } else {
+          this.container.innerHTML = groups.join('');
+        }
+
+        this.container.classList.add('active');
+        this.container.setAttribute('aria-expanded', 'true');
+        this.bindEvents();
+      },
+      bindEvents() {
+        const items = this.container.querySelectorAll('.suggest-item');
+        items.forEach((el) => {
+          el.addEventListener('mouseenter', () => {
+            items.forEach((item) => item.classList.remove('active'));
+            el.classList.add('active');
+            this.activeIndex = Number(el.dataset.index);
+          });
+          el.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            navigateToSuggestion(this.data[Number(el.dataset.index)]);
+          });
         });
-        items.push(...arr);
+      },
+      highlight(direction) {
+        if (!this.data.length) return;
+        const items = this.container.querySelectorAll('.suggest-item');
+        this.activeIndex = (this.activeIndex + direction + this.data.length) % this.data.length;
+        items.forEach((item) => item.classList.remove('active'));
+        const activeItem = items[this.activeIndex];
+        if (activeItem) {
+          activeItem.classList.add('active');
+          activeItem.scrollIntoView({ block: 'nearest' });
+        }
+      },
+      current() {
+        if (this.activeIndex < 0) return null;
+        return this.data[this.activeIndex] || null;
+      }
     };
-    items = [];
-    if ((!data.schools || !data.schools.length) &&
-        (!data.cities || !data.cities.length) &&
-        (!data.authorities || !data.authorities.length) &&
-        (!data.postcodes || !data.postcodes.length)) {
-      sugEl.innerHTML = `<div class="suggest-empty">No matches. Press Enter to search all.</div>`;
-      showSug();
-      return;
+
+    const inputElement = document.getElementById('mainSearchInput');
+
+    async function fetchSuggestions(query) {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 6000);
+      try {
+        const response = await fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        if (!response.ok) return {};
+        return await response.json();
+      } catch (error) {
+        return {};
+      }
     }
 
-    add('SCHOOLS', data.schools, s => s.name);
-    add('CITIES', data.cities, s => s.town);
-    add('LOCAL AUTHORITIES', data.authorities, s => s.local_authority);
-    add('POSTCODES', data.postcodes, s => s.postcode);
+    function navigateToSuggestion(item) {
+      if (!item) return;
+      if (item.type === 'school') {
+        const slugValue = window.schoolPath ? window.schoolPath(item) : `/school/${item.urn}`;
+        window.location.href = slugValue;
+      } else if (item.type === 'city') {
+        window.location.href = `/${slug(item.town)}`;
+      } else if (item.type === 'la') {
+        window.location.href = `/search?q=${encodeURIComponent(item.local_authority)}&type=la`;
+      } else if (item.type === 'pc') {
+        window.location.href = `/search?q=${encodeURIComponent(item.postcode)}&type=postcode`;
+      }
+    }
 
-    sugEl.innerHTML = groups.join('');
-    showSug();
+    const requestSuggestions = debounce(async (event) => {
+      const query = event.target.value.trim();
+      if (query.length < 2) {
+        suggestions.reset();
+        return;
+      }
+      const data = await fetchSuggestions(query);
+      if (!data || (!data.schools && !data.cities && !data.authorities && !data.postcodes)) {
+        suggestions.render();
+        return;
+      }
+      suggestions.render(data);
+    }, 250);
 
-    // mouse handling
-    sugEl.querySelectorAll('.suggest-item').forEach(el=>{
-      el.addEventListener('mouseenter', ()=> {
-        sugEl.querySelectorAll('.suggest-item.active').forEach(a=>a.classList.remove('active'));
-        el.classList.add('active'); active = Number(el.dataset.index);
+    if (inputElement) {
+      inputElement.addEventListener('input', requestSuggestions);
+      inputElement.addEventListener('focus', (event) => {
+        if (event.target.value.trim().length >= 2 && suggestions.data.length) {
+          suggestions.container.classList.add('active');
+        }
       });
-      el.addEventListener('mousedown', (e)=>{ e.preventDefault(); navToSuggestion(items[Number(el.dataset.index)]); });
-    });
-  }
-
-  async function fetchSuggestions(q){
-    const ctrl = new AbortController();
-    setTimeout(()=>ctrl.abort(), 8000);
-
-    const schools = await fetch(`/api/search/school-autocomplete?q=${encodeURIComponent(q)}`, { signal: ctrl.signal })
-      .then(r=>r.json()).catch(()=>({ schools: [] }));
-
-    // If you also wired Google Places earlier, merge here too:
-    // const places = await fetch(`/api/search/places-autocomplete?q=${encodeURIComponent(q)}&sessiontoken=${placesSessionToken}`)
-    //   .then(r=>r.json()).catch(()=>({ predictions: [] }));
-
-    return {
-      schools: schools.schools || [],
-      // cities: (places.predictions || []).filter(p=>p.type==='city'),
-      // authorities: (places.predictions || []).filter(p=>p.type==='la'),
-      // postcodes: (places.predictions || []).filter(p=>p.type==='pc'),
-    };
-  }
-
-  // Keep your original submit behaviour
-  function performSearch(e){
-    if (e) e.preventDefault();
-    const q = inputEl.value.trim();
-    if(!q) return;
-    const type = pcRe.test(q) ? 'postcode' : 'all';
-    window.location.href = `/search?q=${encodeURIComponent(q)}&type=${type}`;
-  }
-  window.performSearch = performSearch; // keep global hook used by form
-</script>
-
-  <script>
-    function performSearch(e){
-      e.preventDefault();
-      const query = document.getElementById('mainSearchInput').value.trim();
-      if(!query) return;
-      // postcode heuristic
-      const pc = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i.test(query) ? 'postcode' : 'all';
-      window.location.href = `/search?q=${encodeURIComponent(query)}&type=${pc}`;
+      inputElement.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          suggestions.highlight(1);
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          suggestions.highlight(-1);
+        } else if (event.key === 'Enter') {
+          const selected = suggestions.current();
+          if (selected) {
+            event.preventDefault();
+            navigateToSuggestion(selected);
+          }
+        } else if (event.key === 'Escape') {
+          suggestions.reset();
+        }
+      });
+      document.addEventListener('click', (event) => {
+        if (!suggestions.container.contains(event.target) && event.target !== inputElement) {
+          suggestions.reset();
+        }
+      });
     }
+
+    function performSearch(event) {
+      event.preventDefault();
+      const query = inputElement.value.trim();
+      if (!query) return;
+      const isPostcode = /\b\d{5}\b/.test(query);
+      const type = isPostcode ? 'postcode' : 'all';
+      window.location.href = `/search?q=${encodeURIComponent(query)}&type=${type}`;
+    }
+    window.performSearch = performSearch;
   </script>
 </body>
 </html>
+
+
+
