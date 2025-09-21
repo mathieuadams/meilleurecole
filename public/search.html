@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search UK Schools | FindSchool.uk Results</title>
-    <meta id="metaDescription" name="description" content="Search UK schools on FindSchool.uk by name, area or postcode. Filter by phase, Ofsted rating and performance to find the best match." />
+    <title>Search UK Schools | MeilleureEcole.fr Results</title>
+    <meta id="metaDescription" name="description" content="Search UK schools on MeilleureEcole.fr by name, area or postcode. Filter by phase, Ofsted rating and performance to find the best match." />
     <meta name="robots" content="noindex,follow" />
-    <link rel="canonical" href="https://www.findschool.uk/search" id="canonicalLink" />
-    <link rel="alternate" href="https://www.findschool.uk/search" hreflang="en-gb" id="alternateLink" />
+    <link rel="canonical" href="https://www.meilleureecole.fr/search" id="canonicalLink" />
+    <link rel="alternate" href="https://www.meilleureecole.fr/search" hreflang="en-gb" id="alternateLink" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#2563eb" />
-    <meta property="og:site_name" content="FindSchool.uk" />
+    <meta property="og:site_name" content="MeilleureEcole.fr" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Search UK Schools | FindSchool.uk Results" id="ogTitle" />
-    <meta property="og:description" content="Find UK schools by area, Ofsted rating and more using FindSchool.uk search." id="ogDescription" />
-    <meta property="og:url" content="https://www.findschool.uk/search" id="ogUrl" />
-    <meta property="og:image" content="https://www.findschool.uk/images/findschool-social.png" />
-    <meta property="og:image:alt" content="FindSchool.uk social preview card" />
+    <meta property="og:title" content="Search UK Schools | MeilleureEcole.fr Results" id="ogTitle" />
+    <meta property="og:description" content="Find UK schools by area, Ofsted rating and more using MeilleureEcole.fr search." id="ogDescription" />
+    <meta property="og:url" content="https://www.meilleureecole.fr/search" id="ogUrl" />
+    <meta property="og:image" content="https://www.meilleureecole.fr/images/findschool-social.png" />
+    <meta property="og:image:alt" content="MeilleureEcole.fr social preview card" />
     <meta property="og:locale" content="en_GB" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Search UK Schools | FindSchool.uk" id="twitterTitle" />
-    <meta name="twitter:description" content="Discover nearby schools with FindSchool.uk's powerful search." id="twitterDescription" />
-    <meta name="twitter:image" content="https://www.findschool.uk/images/findschool-social.png" />
-    <meta name="twitter:image:alt" content="FindSchool.uk social preview card" />
+    <meta name="twitter:title" content="Search UK Schools | MeilleureEcole.fr" id="twitterTitle" />
+    <meta name="twitter:description" content="Discover nearby schools with MeilleureEcole.fr's powerful search." id="twitterDescription" />
+    <meta name="twitter:image" content="https://www.meilleureecole.fr/images/findschool-social.png" />
+    <meta name="twitter:image:alt" content="MeilleureEcole.fr social preview card" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -710,7 +710,7 @@
 
         function buildFullUrl() {
             const { pathname, search } = window.location;
-            return `https://www.findschool.uk${pathname}${search || ''}`;
+            return `https://www.meilleureecole.fr${pathname}${search || ''}`;
         }
 
         const FILTER_TYPE_OPTIONS = new Set(['primary', 'secondary', 'sixth-form', 'special', 'independent', 'academy']);
@@ -723,16 +723,16 @@
             const pageUrl = buildFullUrl();
             const searchTerm = (query || area || '').trim();
             const typeTitle = type ? getTypeTitle(type) : null;
-            let title = 'Search UK Schools | FindSchool.uk Results';
-            let description = 'Search UK schools on FindSchool.uk by name, area or postcode. Filter by phase, Ofsted rating and performance data to find the best match.';
+            let title = 'Search UK Schools | MeilleureEcole.fr Results';
+            let description = 'Search UK schools on MeilleureEcole.fr by name, area or postcode. Filter by phase, Ofsted rating and performance data to find the best match.';
 
             if (searchTerm) {
                 const countText = total ? `${total} result${total === 1 ? '' : 's'}` : 'school results';
-                title = `${searchTerm} Schools Search | FindSchool.uk`;
-                description = `Browse ${countText} for ${searchTerm} on FindSchool.uk. Compare Ofsted judgements, performance scores and parent reviews in seconds.`;
+                title = `${searchTerm} Schools Search | MeilleureEcole.fr`;
+                description = `Browse ${countText} for ${searchTerm} on MeilleureEcole.fr. Compare Ofsted judgements, performance scores and parent reviews in seconds.`;
             } else if (typeTitle) {
                 const countText = total ? `${total} ${typeTitle.toLowerCase()}` : typeTitle.toLowerCase();
-                title = `${typeTitle} Search | FindSchool.uk`;
+                title = `${typeTitle} Search | MeilleureEcole.fr`;
                 description = `Explore ${countText} across the UK. Filter results by Ofsted rating, academic outcomes and catchment insights.`;
             }
 
@@ -755,8 +755,8 @@
             const twitterDescription = document.getElementById('twitterDescription');
             if (twitterDescription) twitterDescription.setAttribute('content', description);
 
-            if (canonical) canonical.setAttribute('href', 'https://www.findschool.uk/search');
-            if (alternate) alternate.setAttribute('href', 'https://www.findschool.uk/search');
+            if (canonical) canonical.setAttribute('href', 'https://www.meilleureecole.fr/search');
+            if (alternate) alternate.setAttribute('href', 'https://www.meilleureecole.fr/search');
 
             const structuredDataEl = document.getElementById('structuredData');
             if (structuredDataEl) {
@@ -768,8 +768,8 @@
                     "description": description,
                     "isPartOf": {
                         "@type": "WebSite",
-                        "name": "FindSchool.uk",
-                        "url": "https://www.findschool.uk/"
+                        "name": "MeilleureEcole.fr",
+                        "url": "https://www.meilleureecole.fr/"
                     }
                 };
                 if (searchTerm) structuredData.searchTerm = searchTerm;

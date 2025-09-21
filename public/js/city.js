@@ -19,12 +19,12 @@ function canonicalUrl() {
   const trimmedPath = window.location.pathname.endsWith('/') && window.location.pathname !== '/'
     ? window.location.pathname.slice(0, -1)
     : window.location.pathname;
-  return `https://www.findschool.uk${trimmedPath || '/'}`;
+  return `https://www.meilleureecole.fr${trimmedPath || '/'}`;
 }
 
 function updateCityMeta(cityName) {
-  const pageTitle = `${cityName} Schools Guide | FindSchool.uk`;
-  const description = `Explore top performing schools in ${cityName} with FindSchool.uk. Compare Ofsted ratings, academic results and parent reviews to choose confidently.`;
+  const pageTitle = `${cityName} Schools Guide | MeilleureEcole.fr`;
+  const description = `Explore top performing schools in ${cityName} with MeilleureEcole.fr. Compare Ofsted ratings, academic results and parent reviews to choose confidently.`;
   const url = canonicalUrl();
 
   document.title = pageTitle;
@@ -67,8 +67,8 @@ function updateCityMeta(cityName) {
           "description": description,
           "isPartOf": {
             "@type": "WebSite",
-            "name": "FindSchool.uk",
-            "url": "https://www.findschool.uk/"
+            "name": "MeilleureEcole.fr",
+            "url": "https://www.meilleureecole.fr/"
           }
         },
         {
@@ -78,7 +78,7 @@ function updateCityMeta(cityName) {
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://www.findschool.uk/"
+              "item": "https://www.meilleureecole.fr/"
             },
             {
               "@type": "ListItem",

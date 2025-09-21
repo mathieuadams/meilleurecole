@@ -13,17 +13,17 @@ function canonicalUrl() {
   const trimmedPath = window.location.pathname.endsWith('/') && window.location.pathname !== '/'
     ? window.location.pathname.slice(0, -1)
     : window.location.pathname;
-  return `https://www.findschool.uk${trimmedPath || '/'}`;
+  return `https://www.meilleureecole.fr${trimmedPath || '/'}`;
 }
 
 function updateLAMeta(data, citySlug) {
   const laName = data.laName || 'Local Authority';
   const region = data.region ? data.region : '';
   const city = data.city || (citySlug ? citySlug.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ') : '');
-  const pageTitle = `${laName} Schools Overview | FindSchool.uk`;
+  const pageTitle = `${laName} Schools Overview | MeilleureEcole.fr`;
   const url = canonicalUrl();
   const descriptionParts = [
-    `Compare Ofsted ratings, performance data and student outcomes across the ${laName} local authority on FindSchool.uk.`
+    `Compare Ofsted ratings, performance data and student outcomes across the ${laName} local authority on MeilleureEcole.fr.`
   ];
   if (region) descriptionParts.push(`Located in ${region}.`);
   if (city) descriptionParts.push(`Including schools in ${city} and surrounding communities.`);
@@ -64,7 +64,7 @@ function updateLAMeta(data, citySlug) {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://www.findschool.uk/"
+        "item": "https://www.meilleureecole.fr/"
       }
     ];
     if (city) {
@@ -72,7 +72,7 @@ function updateLAMeta(data, citySlug) {
         "@type": "ListItem",
         "position": breadcrumbElements.length + 1,
         "name": city,
-        "item": `https://www.findschool.uk/${(citySlug || city.toLowerCase().replace(/\s+/g, '-'))}`
+        "item": `https://www.meilleureecole.fr/${(citySlug || city.toLowerCase().replace(/\s+/g, '-'))}`
       });
     }
     breadcrumbElements.push({
@@ -92,8 +92,8 @@ function updateLAMeta(data, citySlug) {
           "description": description,
           "isPartOf": {
             "@type": "WebSite",
-            "name": "FindSchool.uk",
-            "url": "https://www.findschool.uk/"
+            "name": "MeilleureEcole.fr",
+            "url": "https://www.meilleureecole.fr/"
           }
         },
         {

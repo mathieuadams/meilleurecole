@@ -45,7 +45,7 @@ const canonicalUrl = () => {
   const trimmedPath = window.location.pathname.endsWith('/') && window.location.pathname !== '/'
     ? window.location.pathname.slice(0, -1)
     : window.location.pathname;
-  return `https://www.findschool.uk${trimmedPath || '/'}`;
+  return `https://www.meilleureecole.fr${trimmedPath || '/'}`;
 };
 
 function updateSchoolMeta(school) {
@@ -57,10 +57,10 @@ function updateSchoolMeta(school) {
     .map(part => part.trim())
     .filter(Boolean);
   const locationString = locationParts.join(', ');
-  const title = `${schoolName} School Profile | FindSchool.uk`;
+  const title = `${schoolName} School Profile | MeilleureEcole.fr`;
   const description = locationString
-    ? `Review ${schoolName} in ${locationString} with FindSchool.uk. Access Ofsted reports, attainment scores, demographics and parent insights.`
-    : `Review ${schoolName} with FindSchool.uk. Access Ofsted reports, attainment scores, demographics and parent insights.`;
+    ? `Review ${schoolName} in ${locationString} with MeilleureEcole.fr. Access Ofsted reports, attainment scores, demographics and parent insights.`
+    : `Review ${schoolName} with MeilleureEcole.fr. Access Ofsted reports, attainment scores, demographics and parent insights.`;
 
   const slugFn = window.schoolSlug || ((name) => {
     return String(name || 'school')
@@ -116,7 +116,7 @@ function updateSchoolMeta(school) {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://www.findschool.uk/"
+        "item": "https://www.meilleureecole.fr/"
       }
     ];
     if (address.town) {
@@ -124,7 +124,7 @@ function updateSchoolMeta(school) {
         "@type": "ListItem",
         "position": breadcrumbElements.length + 1,
         "name": address.town,
-        "item": `https://www.findschool.uk/${address.town.toLowerCase().replace(/\s+/g, '-')}`
+        "item": `https://www.meilleureecole.fr/${address.town.toLowerCase().replace(/\s+/g, '-')}`
       });
     }
     if (address.local_authority) {
@@ -132,7 +132,7 @@ function updateSchoolMeta(school) {
         "@type": "ListItem",
         "position": breadcrumbElements.length + 1,
         "name": address.local_authority,
-        "item": `https://www.findschool.uk/local-authority/${address.local_authority.toLowerCase().replace(/\s+/g, '-')}`
+        "item": `https://www.meilleureecole.fr/local-authority/${address.local_authority.toLowerCase().replace(/\s+/g, '-')}`
       });
     }
     breadcrumbElements.push({
