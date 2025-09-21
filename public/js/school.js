@@ -5,7 +5,7 @@
 
 // ----------------------------- Globals -------------------------------------
 let currentSchoolData = null;
-let isScottishSchool = false;
+let isScottishSchool = false; // legacy flag; treated as "non-England/non-UK" toggle now
 
 // ----------------------------- Helpers -------------------------------------
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -273,11 +273,15 @@ async function loadSchoolData() {
     const s = payload.school;
     // Normalize fields
     s.rating_components = safeParseJSON(s.rating_components, []);
-    isScottishSchool = (s.country && s.country.toLowerCase() !== 'england') || !!s.is_scotland;
+    // Treat any non-England system (e.g., France) as non-UK flow for UI
+    const country = (s.country || '').toLowerCase();
+    const isFrenchSchool = country === 'france' || /[a-z]/i.test(String(urn));
+    isScottishSchool = (country && country !== 'england') || !!s.is_scotland;
 
-    if (isScottishSchool) {
-      hideScotlandFeatures();
-      adjustScottishRating(s);
+    if (isFrenchSchool || isScottishSchool) {
+      // Hide Ofsted/UK-specific UI for non-UK datasets
+      if (typeof hideScotlandFeatures === 'function') hideScotlandFeatures();
+      // Do not reweight ratings for France
     }
 
     currentSchoolData = s;
@@ -286,8 +290,11 @@ async function loadSchoolData() {
     updateSchoolDisplay(s);
 
     // Fire-and-forget extras
-    loadPerformanceData(urn).catch(e => console.warn('performance fetch failed', e));
-    loadNearbySchools(urn).catch(e => console.warn('nearby fetch failed', e));
+    if (!isFrenchSchool) {
+      // Only available for UK dataset
+      loadPerformanceData(urn).catch(e => console.warn('performance fetch failed', e));
+      loadNearbySchools(urn).catch(e => console.warn('nearby fetch failed', e));
+    }
 
     // Notify other components
     window.dispatchEvent(new CustomEvent('schoolDataLoaded', { detail: s }));
@@ -531,6 +538,40 @@ function updateContactInfo(school) {
   if (phoneEl) {
     phoneEl.textContent = school.telephone || '—';
     if (school.telephone) phoneEl.href = `tel:${school.telephone}`;
+  }
+
+  // Email (add dynamically if needed)
+  const emailSelector = '#nh-email';
+  let emailEl = document.querySelector(emailSelector);
+  if (!emailEl && school.email) {
+    const websiteRow = document.querySelector('#nh-website')?.closest('.contact-row');
+    const holder = websiteRow?.parentElement || document.querySelector('.contact-card');
+    if (holder) {
+      const row = document.createElement('div');
+      row.className = 'contact-row';
+      row.innerHTML = `
+        <div class="contact-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2.003 5.884l7.197 4.5a1 1 0 001.1 0l7.197-4.5A2 2 0 0016.8 4H3.2a2 2 0 00-1.197 1.884z"/>
+            <path d="M18 8.118l-6.803 4.25a3 3 0 01-3.394 0L1 8.118V14a2 2 0 002 2h14a2 2 0 002-2V8.118z"/>
+          </svg>
+        </div>
+        <div class="contact-content">
+          <div class="contact-label">Email</div>
+          <a id="nh-email" href="#" rel="nofollow"></a>
+        </div>`;
+      if (websiteRow) holder.insertBefore(row, websiteRow); else holder.appendChild(row);
+    }
+  }
+  emailEl = document.querySelector(emailSelector);
+  if (emailEl) {
+    if (school.email) {
+      emailEl.textContent = school.email;
+      emailEl.href = `mailto:${school.email}`;
+    } else {
+      emailEl.textContent = '�?"';
+      emailEl.removeAttribute('href');
+    }
   }
 
   // Website

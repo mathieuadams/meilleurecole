@@ -319,6 +319,138 @@ router.get('/:urn', async (req, res) => {
     const { urn } = req.params;
     const debug = req.query.debug === '1';
 
+    // -------------------------------------------------------------------
+    // FR branch: handle French UAI identifiers (alphanumeric like 0341711A)
+    // -------------------------------------------------------------------
+    if (!/^\d+$/.test(String(urn))) {
+      const uai = String(urn).trim();
+      if (!uai) return res.status(400).json({ error: 'Invalid UAI provided' });
+
+      // Fetch base school data from French table
+      const frSql = `
+        SELECT 
+          e.identifiant_de_l_etablissement AS uai,
+          e.nom_etablissement AS name,
+          e.nom_commune AS commune,
+          e.code_postal,
+          e.type_etablissement,
+          e.statut_public_prive,
+          e.type_contrat_prive,
+          e.libelle_departement AS departement,
+          e.libelle_academie AS academie,
+          e.libelle_region AS region,
+          e.adresse_1,
+          e.adresse_2,
+          e.adresse_3,
+          e.telephone,
+          e.web,
+          e.mail,
+          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          NULLIF(e.latitude, '')::double precision AS latitude,
+          NULLIF(e.longitude, '')::double precision AS longitude
+        FROM fr_ecoles e
+        WHERE e.identifiant_de_l_etablissement = $1
+        LIMIT 1
+      `;
+      const statsSql = `
+        SELECT avg_overall_rating, total_reviews, recommendation_percentage
+        FROM fr_school_review_stats
+        WHERE uai = $1
+        LIMIT 1
+      `;
+
+      const [frR, stR] = await Promise.all([
+        query(frSql, [uai]),
+        query(statsSql, [uai])
+      ]);
+
+      if (!frR.rows.length) {
+        return res.status(404).json({ error: 'School not found' });
+      }
+      const row = frR.rows[0];
+      const stats = stR.rows[0] || {};
+
+      const avgReview = stats.avg_overall_rating == null ? null : Number(stats.avg_overall_rating);
+      const overallOn10 = avgReview == null ? null : Math.round(avgReview * 20) / 10; // 0-5 -> 0-10
+
+      const payload = {
+        success: true,
+        school: {
+          urn: row.uai,
+          name: row.name,
+          country: 'France',
+
+          type: row.type_etablissement,
+          phase: row.statut_public_prive,
+          status: row.type_contrat_prive,
+
+          telephone: row.telephone || null,
+          website: row.web || null,
+          email: row.mail || null,
+          headteacher_name: null,
+          headteacher_job_title: null,
+          latitude: row.latitude,
+          longitude: row.longitude,
+
+          address: {
+            street: [row.adresse_1, row.adresse_2, row.adresse_3].filter(Boolean).join(', ') || null,
+            locality: null,
+            town: row.commune,
+            postcode: row.code_postal,
+            local_authority: row.departement,
+            county: row.departement,
+            region: row.region
+          },
+
+          characteristics: {
+            gender: null,
+            age_range: 'N/A',
+            religious_character: null,
+            admissions_policy: null,
+            has_nursery: null,
+            has_sixth_form: null,
+            is_boarding_school: null,
+            has_sen_provision: null
+          },
+
+          demographics: {
+            total_students: row.nombre_d_eleves || null,
+            boys: null,
+            girls: null,
+            fsm_percentage: null,
+            eal_percentage: null,
+            sen_support_percentage: null,
+            sen_ehcp_percentage: null
+          },
+
+          attendance: {
+            overall_absence_rate: null,
+            persistent_absence_rate: null
+          },
+
+          test_scores: null,
+          ofsted: null,
+
+          overall_rating: overallOn10,
+          rating_components: null,
+          rating_percentile: null,
+          rating_data_completeness: null,
+          la_comparison: null,
+
+          reviews: {
+            avg_overall_rating: avgReview,
+            total_reviews: stats.total_reviews || 0,
+            recommendation_percentage: stats.recommendation_percentage == null ? null : Number(stats.recommendation_percentage)
+          }
+        }
+      };
+
+      return res.json(payload);
+    }
+
+    // -------------------------------------------------------------------
+    // UK branch: numeric URN
+    // -------------------------------------------------------------------
     if (!urn || isNaN(urn)) {
       return res.status(400).json({ error: 'Invalid URN provided' });
     }
