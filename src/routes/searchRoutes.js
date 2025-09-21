@@ -1,853 +1,760 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { query } = require('../config/database');
+const { query } = require("../config/database");
 
-/**
- * @route   GET /api/search
- * @desc    Search schools by name, postcode, or location
- * @query   q (search term), type (name|postcode|location), limit, offset
- * @example /api/search?q=Westminster&type=name&limit=10
- */
-// --- /api/search/suggest ---
-router.get('/suggest', async (req, res) => {
-  const q = String(req.query.q || '').trim();
-  const limit = Math.min(parseInt(req.query.limit || '8', 10), 20);
-  if (q.length < 2) return res.json({ schools: [], cities: [], authorities: [], postcodes: [] });
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+const MAX_SUGGEST_LIMIT = 20;
+const MAX_RADIUS_KM = 50;
 
-  const likePrefix = q.replace(/[%_]/g, '') + '%';
+const CATEGORY_PATTERNS = {
+  ecole: ["Ec%"],
+  college: ["Col%"],
+  lycee: ["Ly%"],
+  specialise: [
+    "M%cico-social%",
+    "EREA%",
+    "Service Administratif%",
+    "Information et orientation%",
+    "Autre%"
+  ]
+};
+
+const STATUS_PATTERNS = {
+  public: ["Public%"],
+  prive: ["Priv%"]
+};
+
+function parseList(value) {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function clampLimit(value, fallback = DEFAULT_LIMIT) {
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, MAX_LIMIT);
+}
+
+function clampOffset(value) {
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed < 0) return 0;
+  return parsed;
+}
+
+function sanitizeLikeTerm(term) {
+  return `%${term.replace(/[%_]/g, "").trim()}%`;
+}
+
+function sanitizePrefixTerm(term) {
+  return `${term.replace(/[%_]/g, "").trim()}%`;
+}
+
+function applyPatternGroup(selected, patternMap, params) {
+  if (!selected.length) return null;
+
+  const clauses = [];
+  for (const key of selected) {
+    const patterns = patternMap[key];
+    if (!patterns || !patterns.length) continue;
+    const patternClauses = [];
+    for (const pattern of patterns) {
+      params.push(pattern);
+      patternClauses.push(`e.type_etablissement ILIKE $${params.length}`);
+    }
+    if (patternClauses.length) {
+      clauses.push(`(${patternClauses.join(" OR ")})`);
+    }
+  }
+
+  if (!clauses.length) return null;
+  return `(${clauses.join(" OR ")})`;
+}
+
+function applyStatusGroup(selected, params) {
+  if (!selected.length) return null;
+  const clauses = [];
+  for (const key of selected) {
+    const patterns = STATUS_PATTERNS[key];
+    if (!patterns || !patterns.length) continue;
+    const patternClauses = [];
+    for (const pattern of patterns) {
+      params.push(pattern);
+      patternClauses.push(`e.statut_public_prive ILIKE $${params.length}`);
+    }
+    if (patternClauses.length) {
+      clauses.push(`(${patternClauses.join(" OR ")})`);
+    }
+  }
+
+  if (!clauses.length) return null;
+  return `(${clauses.join(" OR ")})`;
+}
+
+function normalizeRating(value) {
+  if (value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function toFloat(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function toInt(value) {
+  const num = parseInt(value, 10);
+  return Number.isNaN(num) ? null : num;
+}
+
+function mapSchoolRow(row) {
+  const avgReview = normalizeRating(row.avg_overall_rating);
+  const ratingOn10 = avgReview !== null ? Math.round(avgReview * 20) / 10 : null;
+  const studentCount = toInt(row.nombre_d_eleves);
+  const recommendation = normalizeRating(row.recommendation_percentage);
+
+  const addressParts = [
+    row.adresse_1,
+    row.adresse_2,
+    row.adresse_3,
+    row.code_postal,
+    row.commune
+  ].filter(Boolean);
+
+  return {
+    urn: row.uai,
+    uai: row.uai,
+    name: row.name,
+    slug: row.name ? row.name.toLowerCase() : null,
+    town: row.commune,
+    postcode: row.code_postal,
+    departement: row.departement,
+    region: row.region,
+    academie: row.academie,
+    statut_public_prive: row.statut_public_prive,
+    type_etablissement: row.type_etablissement,
+    type_of_establishment: row.type_etablissement,
+    phase_of_education: row.statut_public_prive,
+    contract_type: row.type_contrat_prive,
+    number_on_roll: studentCount,
+    number_of_students: studentCount,
+    overall_rating: ratingOn10,
+    avg_review_rating: avgReview,
+    total_reviews: toInt(row.total_reviews) || 0,
+    recommendation_percentage: recommendation,
+    latitude: row.latitude !== null ? toFloat(row.latitude) : null,
+    longitude: row.longitude !== null ? toFloat(row.longitude) : null,
+    adresse_ligne1: row.adresse_1,
+    adresse_ligne2: row.adresse_2,
+    adresse_ligne3: row.adresse_3,
+    address: addressParts.join(", ") || null
+  };
+}
+
+async function runQuery(sql, params) {
+  return query(sql, params);
+}
+
+router.get("/suggest", async (req, res) => {
+  const rawQ = String(req.query.q || "").trim();
+  const limit = Math.min(parseInt(req.query.limit, 10) || 8, MAX_SUGGEST_LIMIT);
+
+  if (rawQ.length < 2) {
+    return res.json({ schools: [], cities: [], authorities: [], postcodes: [] });
+  }
+
+  const likeTerm = sanitizeLikeTerm(rawQ);
+  const prefixTerm = sanitizePrefixTerm(rawQ);
 
   try {
-    const schoolsSql = `
-      SELECT s.urn, s.name, s.town, s.postcode,
-             COALESCE(s.overall_rating,
-                      CASE o.overall_effectiveness
-                        WHEN 1 THEN 9 WHEN 2 THEN 7 WHEN 3 THEN 5 WHEN 4 THEN 3 ELSE NULL END
-             ) AS overall_rating
-      FROM uk_schools s
-      LEFT JOIN uk_ofsted_inspections o ON o.urn = s.urn
-      WHERE s.name ILIKE $1 OR s.postcode ILIKE $1 OR s.town ILIKE $1
-      ORDER BY s.overall_rating DESC NULLS LAST, s.name ASC
-      LIMIT $2;`;
-
-    const citiesSql = `
-      SELECT s.town, MAX(s.country) AS country
-      FROM uk_schools s
-      WHERE s.town ILIKE $1
-      GROUP BY s.town
-      ORDER BY COUNT(*) DESC, s.town ASC
-      LIMIT $2;`;
-
-    const laSql = `
-      SELECT s.local_authority, MAX(s.region) AS region
-      FROM uk_schools s
-      WHERE s.local_authority ILIKE $1
-      GROUP BY s.local_authority
-      ORDER BY COUNT(*) DESC, s.local_authority ASC
-      LIMIT $2;`;
-
-    const pcSql = `
-      SELECT DISTINCT s.postcode
-      FROM uk_schools s
-      WHERE s.postcode ILIKE $1
-      ORDER BY s.postcode
-      LIMIT $2;`;
-
-    const [schools, cities, authorities, postcodes] = await Promise.all([
-      query(schoolsSql, [likePrefix, limit]),
-      query(citiesSql,   [likePrefix, Math.max(5, Math.floor(limit/2))]),
-      query(laSql,       [likePrefix, Math.max(5, Math.floor(limit/2))]),
-      query(pcSql,       [likePrefix, 6]),
-    ]).then(rs => rs.map(r => r.rows));
+    const [schoolsRes, communesRes, departementsRes, postcodesRes] = await Promise.all([
+      runQuery(
+        `
+          SELECT 
+            e.identifiant_de_l_etablissement AS uai,
+            e.nom_etablissement AS name,
+            e.nom_commune AS commune,
+            e.code_postal,
+            e.libelle_departement AS departement,
+            e.libelle_region AS region
+          FROM fr_ecoles e
+          WHERE e.nom_etablissement ILIKE $1
+          ORDER BY e.nom_etablissement ASC
+          LIMIT $2
+        `,
+        [likeTerm, limit]
+      ),
+      runQuery(
+        `
+          SELECT 
+            e.nom_commune AS commune,
+            e.libelle_departement AS departement,
+            e.libelle_region AS region,
+            COUNT(*) AS total
+          FROM fr_ecoles e
+          WHERE e.nom_commune ILIKE $1
+          GROUP BY e.nom_commune, e.libelle_departement, e.libelle_region
+          ORDER BY total DESC, commune ASC
+          LIMIT $2
+        `,
+        [likeTerm, limit]
+      ),
+      runQuery(
+        `
+          SELECT 
+            e.libelle_departement AS departement,
+            e.libelle_region AS region,
+            COUNT(*) AS total
+          FROM fr_ecoles e
+          WHERE e.libelle_departement ILIKE $1
+          GROUP BY e.libelle_departement, e.libelle_region
+          ORDER BY total DESC, departement ASC
+          LIMIT $2
+        `,
+        [likeTerm, Math.max(5, Math.floor(limit / 2))]
+      ),
+      runQuery(
+        `
+          SELECT DISTINCT e.code_postal AS code_postal
+          FROM fr_ecoles e
+          WHERE e.code_postal ILIKE $1
+          ORDER BY code_postal ASC
+          LIMIT $2
+        `,
+        [prefixTerm, Math.max(4, Math.floor(limit / 2))]
+      )
+    ]);
 
     res.json({
-      schools: schools.map(r => ({ type:'school', urn:r.urn, name:r.name, town:r.town, postcode:r.postcode, overall_rating:r.overall_rating })),
-      cities:  cities.map(r => ({ type:'city', town:r.town, country:r.country })),
-      authorities: authorities.map(r => ({ type:'la', local_authority:r.local_authority, region:r.region })),
-      postcodes: postcodes.map(r => ({ type:'pc', postcode:r.postcode })),
+      schools: schoolsRes.rows.map((row) => ({
+        urn: row.uai,
+        name: row.name,
+        town: row.commune,
+        postcode: row.code_postal,
+        departement: row.departement,
+        region: row.region
+      })),
+      cities: communesRes.rows.map((row) => ({
+        town: row.commune,
+        departement: row.departement,
+        region: row.region,
+        count: parseInt(row.total, 10)
+      })),
+      authorities: departementsRes.rows.map((row) => ({
+        local_authority: row.departement,
+        region: row.region,
+        count: parseInt(row.total, 10)
+      })),
+      postcodes: postcodesRes.rows.map((row) => ({ postcode: row.code_postal }))
     });
-  } catch (e) {
-    console.error('suggest error', e);
+  } catch (error) {
+    console.error("suggest error", error);
     res.json({ schools: [], cities: [], authorities: [], postcodes: [] });
   }
 });
 
-// --- /api/search/school-autocomplete ---
-router.get('/school-autocomplete', async (req, res) => {
-  const qRaw = String(req.query.q || '').trim();
-  const limit = Math.min(parseInt(req.query.limit || '8', 10), 20);
-  if (qRaw.length < 2) return res.json({ schools: [] });
+router.get("/school-autocomplete", async (req, res) => {
+  const rawQ = String(req.query.q || "").trim();
+  const limit = Math.min(parseInt(req.query.limit, 10) || 8, MAX_SUGGEST_LIMIT);
 
-  const q = qRaw.replace(/[%_]/g, '');
-  const like = q + '%';
-  const tokens = q.split(/\s+/).filter(Boolean);
-  const tokenConds = tokens.map((_, i) => `LOWER(name) LIKE LOWER($${i + 3})`).join(' AND ');
-  const tokenParams = tokens.map(t => `%${t}%`);
+  if (rawQ.length < 2) {
+    return res.json({ schools: [] });
+  }
 
-  const sql = `
-    SELECT urn, name, town, postcode, overall_rating
-    FROM uk_schools
-    WHERE name ILIKE $1
-       OR postcode ILIKE $1
-       OR town ILIKE $1
-       OR (${tokens.length ? tokenConds : 'FALSE'})
-    ORDER BY overall_rating DESC NULLS LAST, name ASC
-    LIMIT $2`;
+  const likeTerm = sanitizeLikeTerm(rawQ);
 
   try {
-    const { rows } = await query(sql, [like, limit, ...tokenParams]);
-    res.json({ schools: rows });
-  } catch (e) {
-    console.error('school-autocomplete error', e);
+    const { rows } = await runQuery(
+      `
+        SELECT 
+          e.identifiant_de_l_etablissement AS uai,
+          e.nom_etablissement AS name,
+          e.nom_commune AS commune,
+          e.code_postal,
+          e.type_etablissement,
+          e.statut_public_prive
+        FROM fr_ecoles e
+        WHERE 
+          e.nom_etablissement ILIKE $1
+          OR e.code_postal ILIKE $1
+          OR e.nom_commune ILIKE $1
+        ORDER BY e.nom_etablissement ASC
+        LIMIT $2
+      `,
+      [likeTerm, limit]
+    );
+
+    const schools = rows.map((row) => ({
+      urn: row.uai,
+      name: row.name,
+      town: row.commune,
+      postcode: row.code_postal,
+      type_etablissement: row.type_etablissement,
+      statut_public_prive: row.statut_public_prive
+    }));
+
+    res.json({ schools });
+  } catch (error) {
+    console.error("school-autocomplete error", error);
     res.json({ schools: [] });
   }
 });
 
-
-
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const { 
-      q, 
-      type = 'all',
-      limit = 20, 
-      offset = 0,
-      phase,
-      ofsted,
-      la,
-      phases: phasesStr,
-      minRating
-    } = req.query;
+    const rawQ = String(req.query.q || "").trim();
+    const type = String(req.query.type || "all").toLowerCase();
+    const limit = clampLimit(req.query.limit);
+    const offset = clampOffset(req.query.offset);
 
-    // Validate search query
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({ 
-        error: 'Search query must be at least 2 characters long' 
+    if (rawQ.length < 2) {
+      return res.status(400).json({
+        error: "La recherche doit contenir au moins 2 caracteres"
       });
     }
 
-    // Build the SQL query - now using stored overall_rating
-    let sqlQuery = `
-      SELECT 
-        s.urn,
-        s.name,
-        s.postcode,
-        s.town,
-        s.latitude,
-        s.longitude,
-        s.local_authority,
-        s.phase_of_education,
-        s.type_of_establishment,
-        s.street,
-        s.religious_character,
-        s.gender,
-        s.overall_rating,
-        s.rating_percentile,
-        o.overall_effectiveness as ofsted_rating,
-        o.inspection_date,
-        COALESCE(c.number_on_roll, s.total_pupils) AS number_on_roll,
-        c.percentage_fsm_ever6 as fsm_percentage
-      FROM uk_schools s
-      LEFT JOIN LATERAL (
-        SELECT overall_effectiveness, inspection_date
-        FROM uk_ofsted_inspections o
-        WHERE o.urn = s.urn
-        ORDER BY COALESCE(inspection_date, publication_date) DESC NULLS LAST
-        LIMIT 1
-      ) o ON TRUE
-      LEFT JOIN LATERAL (
-        SELECT number_on_roll, percentage_fsm_ever6
-        FROM uk_census_data c2
-        WHERE c2.urn = s.urn
-        ORDER BY academic_year DESC NULLS LAST
-        LIMIT 1
-      ) c ON TRUE
-      WHERE 1=1
-    `;
-
     const params = [];
-    let paramCount = 0;
+    const whereClauses = [];
 
-    // Add search conditions based on type
-    const searchTerm = `%${q.trim()}%`;
-    const qExact = q.trim();
-    
-    if (type === 'name') {
-      paramCount++;
-      sqlQuery += ` AND LOWER(s.name) LIKE LOWER($${paramCount})`;
-      params.push(searchTerm);
-    } else if (type === 'postcode') {
-      paramCount++;
-      sqlQuery += ` AND LOWER(s.postcode) LIKE LOWER($${paramCount})`;
-      params.push(searchTerm);
-    } else if (type === 'location') {
-      // Prefer exact city/LA matches to avoid false positives like 'Londonderry'
-      const laPrefix = `${qExact}%`;
-      paramCount += 3;
-      sqlQuery += ` AND (
-        LOWER(s.town) = LOWER($${paramCount-2}) OR
-        LOWER(s.local_authority) = LOWER($${paramCount-1}) OR
-        LOWER(s.local_authority) LIKE LOWER($${paramCount})
-      )`;
-      params.push(qExact, qExact, laPrefix);
+    const cleaned = rawQ.replace(/\s+/g, " ").trim();
+    const likeTerm = sanitizeLikeTerm(cleaned);
+    const prefixTerm = sanitizePrefixTerm(cleaned);
+
+    if (type === "name") {
+      params.push(likeTerm);
+      whereClauses.push(`e.nom_etablissement ILIKE $${params.length}`);
+    } else if (type === "postcode") {
+      params.push(prefixTerm);
+      whereClauses.push(`e.code_postal ILIKE $${params.length}`);
+    } else if (type === "location") {
+      const isNumeric = /^\d{2,5}$/.test(cleaned);
+      if (isNumeric) {
+        params.push(prefixTerm);
+        whereClauses.push(`e.code_postal ILIKE $${params.length}`);
+      } else {
+        params.push(likeTerm);
+        params.push(likeTerm);
+        params.push(likeTerm);
+        const startIndex = params.length - 2;
+        whereClauses.push(`(
+          e.nom_commune ILIKE $${startIndex}
+          OR e.libelle_departement ILIKE $${startIndex + 1}
+          OR e.libelle_region ILIKE $${startIndex + 2}
+        )`);
+      }
     } else {
-      // Search all fields
-      paramCount++;
-      paramCount++;
-      paramCount++;
-      paramCount++;
-      sqlQuery += ` AND (
-        LOWER(s.name) LIKE LOWER($${paramCount-3}) OR 
-        LOWER(s.postcode) LIKE LOWER($${paramCount-2}) OR 
-        LOWER(s.town) LIKE LOWER($${paramCount-1}) OR 
-        LOWER(s.local_authority) LIKE LOWER($${paramCount})
-      )`;
-      params.push(searchTerm);
-      params.push(searchTerm);
-      params.push(searchTerm);
-      params.push(searchTerm);
+      params.push(likeTerm);
+      const nameIdx = params.length;
+      params.push(likeTerm);
+      const communeIdx = params.length;
+      params.push(likeTerm);
+      const departementIdx = params.length;
+      params.push(prefixTerm);
+      const postalIdx = params.length;
+
+      whereClauses.push(`(
+        e.nom_etablissement ILIKE $${nameIdx}
+        OR e.nom_commune ILIKE $${communeIdx}
+        OR e.libelle_departement ILIKE $${departementIdx}
+        OR e.code_postal ILIKE $${postalIdx}
+      )`);
     }
 
-    // Add filters if provided
-    if (phase) {
-      paramCount++;
-      sqlQuery += ` AND s.phase_of_education = $${paramCount}`;
-      params.push(phase);
+    const categories = parseList(req.query.categories);
+    const categoryClause = applyPatternGroup(categories, CATEGORY_PATTERNS, params);
+    if (categoryClause) {
+      whereClauses.push(categoryClause);
     }
 
-    // Multi-ofsted support (comma-separated)
-    if (ofsted) {
-      const ratings = String(ofsted)
-        .split(',')
-        .map(v => parseInt(v.trim(), 10))
-        .filter(v => [1,2,3,4].includes(v));
-      if (ratings.length > 0) {
-        const placeholders = ratings.map(() => `$${++paramCount}`).join(',');
-        sqlQuery += ` AND o.overall_effectiveness IN (${placeholders})`;
-        params.push(...ratings);
-      }
+    const statuses = parseList(req.query.status);
+    const statusClause = applyStatusGroup(statuses, params);
+    if (statusClause) {
+      whereClauses.push(statusClause);
     }
 
-    if (la) {
-      paramCount++;
-      sqlQuery += ` AND LOWER(s.local_authority) = LOWER($${paramCount})`;
-      params.push(la);
+    const minRating = normalizeRating(req.query.minRating);
+    if (minRating !== null && minRating > 0) {
+      params.push(minRating);
+      whereClauses.push(`stats.avg_overall_rating >= $${params.length}`);
     }
 
-    // School type filters (from checkboxes): phases=Primary,Secondary,Sixth Form,Special,Independent,Academy
-    if (phasesStr) {
-      const selected = String(phasesStr)
-        .split(',')
-        .map(s => s.trim().toLowerCase())
-        .filter(Boolean);
-      if (selected.length > 0) {
-        const orClauses = [];
-        // Primary
-        if (selected.includes('primary')) {
-          paramCount++;
-          orClauses.push(`LOWER(s.phase_of_education) LIKE LOWER($${paramCount})`);
-          params.push('%primary%');
-        }
-        // Secondary
-        if (selected.includes('secondary')) {
-          paramCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${paramCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${paramCount}))`);
-          params.push('%secondary%','%secondary%');
-        }
-        // Sixth Form
-        if (selected.includes('sixth form') || selected.includes('sixth-form')) {
-          paramCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${paramCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${paramCount}) OR s.has_sixth_form = TRUE)`);
-          params.push('%sixth%','%sixth%');
-        }
-        // Special
-        if (selected.includes('special')) {
-          paramCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${paramCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${paramCount}))`);
-          params.push('%special%','%special%');
-        }
-        // Independent
-        if (selected.includes('independent')) {
-          paramCount += 2;
-          orClauses.push(`(LOWER(s.establishment_group) LIKE LOWER($${paramCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${paramCount}))`);
-          params.push('%independent%','%independent%');
-        }
-        // Academy
-        if (selected.includes('academy')) {
-          paramCount += 2;
-          orClauses.push(`(LOWER(s.establishment_group) LIKE LOWER($${paramCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${paramCount}))`);
-          params.push('%academy%','%academy%');
-        }
-        if (orClauses.length > 0) {
-          sqlQuery += ` AND (${orClauses.join(' OR ')})`;
-        }
-      }
-    }
+    const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-    // Minimum overall rating filter
-    if (minRating) {
-      const mr = parseFloat(minRating);
-      if (!isNaN(mr)) {
-        paramCount++;
-        sqlQuery += ` AND s.overall_rating >= $${paramCount}`;
-        params.push(mr);
-      }
-    }
+    params.push(limit);
+    params.push(offset);
 
-    // Order by overall_rating if available, otherwise by name
-    sqlQuery += ` ORDER BY s.overall_rating DESC NULLS LAST, s.name ASC`;
-    
-    paramCount++;
-    sqlQuery += ` LIMIT $${paramCount}`;
-    params.push(parseInt(limit));
-    
-    paramCount++;
-    sqlQuery += ` OFFSET $${paramCount}`;
-    params.push(parseInt(offset));
-
-    // Execute search query
-    console.log('Executing search for:', q, 'Type:', type);
-    
-    const result = await query(sqlQuery, params);
-
-    // Get total count for pagination
-    let countQuery = `
-      SELECT COUNT(*) as total
-      FROM uk_schools s
-      LEFT JOIN LATERAL (
-        SELECT overall_effectiveness, inspection_date
-        FROM uk_ofsted_inspections o
-        WHERE o.urn = s.urn
-        ORDER BY COALESCE(inspection_date, publication_date) DESC NULLS LAST
-        LIMIT 1
-      ) o ON TRUE
-      WHERE 1=1
+    const sql = `
+      SELECT
+        e.identifiant_de_l_etablissement AS uai,
+        e.nom_etablissement AS name,
+        e.nom_commune AS commune,
+        e.code_postal,
+        e.type_etablissement,
+        e.statut_public_prive,
+        e.type_contrat_prive,
+        e.libelle_departement AS departement,
+        e.libelle_academie AS academie,
+        e.libelle_region AS region,
+        e.adresse_1,
+        e.adresse_2,
+        e.adresse_3,
+        NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+        NULLIF(e.latitude, '')::double precision AS latitude,
+        NULLIF(e.longitude, '')::double precision AS longitude,
+        stats.avg_overall_rating,
+        stats.total_reviews,
+        stats.recommendation_percentage,
+        COUNT(*) OVER() AS total_count
+      FROM fr_ecoles e
+      LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
+      ${whereSql}
+      ORDER BY
+        COALESCE(stats.avg_overall_rating, 0) DESC,
+        COALESCE(NULLIF(e.nombre_d_eleves, '')::int, 0) DESC,
+        e.nom_etablissement ASC
+      LIMIT $${params.length - 1}
+      OFFSET $${params.length}
     `;
-    
-    // Add the same WHERE conditions for count (without LIMIT/OFFSET)
-    // Rebuild count params to mirror filters (without LIMIT/OFFSET)
-    const countParams = [];
-    let countParamCount = 0;
 
-    // replicate search conditions (reuse existing searchTerm)
-    if (type === 'name') {
-      countParamCount++;
-      countQuery += ` AND LOWER(s.name) LIKE LOWER($${countParamCount})`;
-      countParams.push(searchTerm);
-    } else if (type === 'postcode') {
-      countParamCount++;
-      countQuery += ` AND LOWER(s.postcode) LIKE LOWER($${countParamCount})`;
-      countParams.push(searchTerm);
-    } else if (type === 'location') {
-      const laPrefix = `${qExact}%`;
-      countParamCount += 3;
-      countQuery += ` AND (
-        LOWER(s.town) = LOWER($${countParamCount-2}) OR
-        LOWER(s.local_authority) = LOWER($${countParamCount-1}) OR
-        LOWER(s.local_authority) LIKE LOWER($${countParamCount})
-      )`;
-      countParams.push(qExact, qExact, laPrefix);
-    } else {
-      countParamCount += 4;
-      countQuery += ` AND (
-        LOWER(s.name) LIKE LOWER($${countParamCount-3}) OR 
-        LOWER(s.postcode) LIKE LOWER($${countParamCount-2}) OR 
-        LOWER(s.town) LIKE LOWER($${countParamCount-1}) OR 
-        LOWER(s.local_authority) LIKE LOWER($${countParamCount})
-      )`;
-      countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
-    }
+    const { rows } = await runQuery(sql, params);
+    const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
 
-    // Same filters for count
-    if (phase) {
-      countParamCount++;
-      countQuery += ` AND s.phase_of_education = $${countParamCount}`;
-      countParams.push(phase);
-    }
-    if (ofsted) {
-      const ratings = String(ofsted)
-        .split(',')
-        .map(v => parseInt(v.trim(), 10))
-        .filter(v => [1,2,3,4].includes(v));
-      if (ratings.length > 0) {
-        const placeholders = ratings.map(() => `$${++countParamCount}`).join(',');
-        countQuery += ` AND o.overall_effectiveness IN (${placeholders})`;
-        countParams.push(...ratings);
-      }
-    }
-    if (la) {
-      countParamCount++;
-      countQuery += ` AND LOWER(s.local_authority) = LOWER($${countParamCount})`;
-      countParams.push(la);
-    }
-    if (phasesStr) {
-      const selected = String(phasesStr)
-        .split(',')
-        .map(s => s.trim().toLowerCase())
-        .filter(Boolean);
-      if (selected.length > 0) {
-        const orClauses = [];
-        if (selected.includes('primary')) {
-          countParamCount++;
-          orClauses.push(`LOWER(s.phase_of_education) LIKE LOWER($${countParamCount})`);
-          countParams.push('%primary%');
-        }
-        if (selected.includes('secondary')) {
-          countParamCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${countParamCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${countParamCount}))`);
-          countParams.push('%secondary%','%secondary%');
-        }
-        if (selected.includes('sixth form') || selected.includes('sixth-form')) {
-          countParamCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${countParamCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${countParamCount}) OR s.has_sixth_form = TRUE)`);
-          countParams.push('%sixth%','%sixth%');
-        }
-        if (selected.includes('special')) {
-          countParamCount += 2;
-          orClauses.push(`(LOWER(s.phase_of_education) LIKE LOWER($${countParamCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${countParamCount}))`);
-          countParams.push('%special%','%special%');
-        }
-        if (selected.includes('independent')) {
-          countParamCount += 2;
-          orClauses.push(`(LOWER(s.establishment_group) LIKE LOWER($${countParamCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${countParamCount}))`);
-          countParams.push('%independent%','%independent%');
-        }
-        if (selected.includes('academy')) {
-          countParamCount += 2;
-          orClauses.push(`(LOWER(s.establishment_group) LIKE LOWER($${countParamCount-1}) OR LOWER(s.type_of_establishment) LIKE LOWER($${countParamCount}))`);
-          countParams.push('%academy%','%academy%');
-        }
-        if (orClauses.length > 0) {
-          countQuery += ` AND (${orClauses.join(' OR ')})`;
-        }
-      }
-    }
-    if (minRating) {
-      const mr = parseFloat(minRating);
-      if (!isNaN(mr)) {
-        countParamCount++;
-        countQuery += ` AND s.overall_rating >= $${countParamCount}`;
-        countParams.push(mr);
-      }
-    }
-
-    const countResult = await query(countQuery, countParams);
-
-    // Format response
     res.json({
       success: true,
-      query: q,
-      type: type,
-      total: parseInt(countResult.rows[0]?.total || 0),
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      schools: result.rows.map(school => ({
-        ...school,
-        ofsted_label: getOfstedLabel(school.ofsted_rating),
-        overall_rating: school.overall_rating ? parseFloat(school.overall_rating) : null,
-        rating_display: school.overall_rating ? `${parseFloat(school.overall_rating).toFixed(1)}/10` : 'N/A',
-        percentile_text: school.rating_percentile ? `Top ${100 - school.rating_percentile}%` : null
-      }))
+      query: cleaned,
+      type,
+      total,
+      limit,
+      offset,
+      schools: rows.map(mapSchoolRow)
     });
-
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ 
-      error: 'Failed to search schools',
-      message: error.message 
+    console.error("Search error", error);
+    res.status(500).json({
+      error: "Recherche indisponible",
+      message: error.message
     });
   }
 });
 
-/**
- * @route   GET /api/search/nearby
- * @desc    Search schools near specific coordinates
- * @query   lat, lng, radius (in km)
- * @example /api/search/nearby?lat=51.5074&lng=-0.1278&radius=5
- */
-router.get('/nearby', async (req, res) => {
+router.get("/nearby", async (req, res) => {
   try {
-    const { lat, lng, radius = 5, limit = 100 } = req.query;
-    
-    if (!lat || !lng) {
-      return res.status(400).json({ 
-        error: 'Latitude and longitude are required' 
-      });
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const radius = Math.min(Number(req.query.radius) || 5, MAX_RADIUS_KM);
+    const limit = clampLimit(req.query.limit || 100, 100);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: "Latitude et longitude sont requises" });
     }
-    
-    const latitude = parseFloat(lat);
-    const longitude = parseFloat(lng);
-    const searchRadius = Math.min(parseFloat(radius) || 5, 50); // Max 50km
-    const resultLimit = Math.min(parseInt(limit) || 100, 500); // Max 500 results
-    
-    if (isNaN(latitude) || isNaN(longitude)) {
-      return res.status(400).json({ 
-        error: 'Invalid latitude or longitude values' 
-      });
-    }
-    
-    // PostgreSQL version with proper distance calculation
-    // Using a subquery to calculate distance, then filtering in WHERE clause
-    const sqlQuery = `
+
+    const params = [lat, lng, radius, limit];
+
+    const sql = `
       WITH school_distances AS (
-        SELECT 
-          s.urn,
-          s.name,
-          s.postcode,
-          s.town,
-          s.local_authority,
-          s.phase_of_education,
-          s.type_of_establishment,
-          s.street,
-          s.religious_character,
-          s.gender,
-          s.overall_rating,
-          s.rating_percentile,
-          s.latitude,
-          s.longitude,
-          o.overall_effectiveness as ofsted_rating,
-          o.inspection_date,
-          COALESCE(c.number_on_roll, s.total_pupils) AS number_on_roll,
-          c.percentage_fsm_ever6 as fsm_percentage,
+        SELECT
+          e.identifiant_de_l_etablissement AS uai,
+          e.nom_etablissement AS name,
+          e.nom_commune AS commune,
+          e.code_postal,
+          e.type_etablissement,
+          e.statut_public_prive,
+          e.type_contrat_prive,
+          NULLIF(e.latitude, '')::double precision AS latitude,
+          NULLIF(e.longitude, '')::double precision AS longitude,
+          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          stats.avg_overall_rating,
+          stats.total_reviews,
+          stats.recommendation_percentage,
+          e.libelle_departement AS departement,
+          e.libelle_academie AS academie,
+          e.libelle_region AS region,
+          e.adresse_1,
+          e.adresse_2,
+          e.adresse_3,
           (
             6371 * acos(
-              LEAST(1.0, 
-                cos(radians($1)) * cos(radians(s.latitude)) * 
-                cos(radians(s.longitude) - radians($2)) + 
-                sin(radians($1)) * sin(radians(s.latitude))
+              LEAST(
+                1.0,
+                cos(radians($1)) * cos(radians(NULLIF(e.latitude, '')::double precision)) *
+                cos(radians(NULLIF(e.longitude, '')::double precision) - radians($2)) +
+                sin(radians($1)) * sin(radians(NULLIF(e.latitude, '')::double precision))
               )
             )
           ) AS distance_km
-        FROM uk_schools s
-        LEFT JOIN uk_ofsted_inspections o ON s.urn = o.urn
-        LEFT JOIN uk_census_data c ON s.urn = c.urn
-        WHERE 
-          s.latitude IS NOT NULL 
-          AND s.longitude IS NOT NULL
-          AND s.latitude BETWEEN $1 - ($3 / 111.0) AND $1 + ($3 / 111.0)
-          AND s.longitude BETWEEN $2 - ($3 / (111.0 * cos(radians($1)))) AND $2 + ($3 / (111.0 * cos(radians($1))))
+        FROM fr_ecoles e
+        LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
+        WHERE
+          NULLIF(e.latitude, '') IS NOT NULL
+          AND NULLIF(e.longitude, '') IS NOT NULL
+          AND NULLIF(e.latitude, '')::double precision BETWEEN $1 - ($3 / 111.0) AND $1 + ($3 / 111.0)
+          AND NULLIF(e.longitude, '')::double precision BETWEEN $2 - ($3 / (111.0 * cos(radians($1)))) AND $2 + ($3 / (111.0 * cos(radians($1))))
       )
-      SELECT * FROM school_distances
+      SELECT *
+      FROM school_distances
       WHERE distance_km <= $3
-      ORDER BY overall_rating DESC NULLS LAST, distance_km ASC
+      ORDER BY distance_km ASC
       LIMIT $4
     `;
-    
-    console.log('Searching for schools near:', { latitude, longitude, searchRadius, resultLimit });
-    
-    const result = await query(sqlQuery, [latitude, longitude, searchRadius, resultLimit]);
-    
-    console.log(`Found ${result.rows.length} schools within ${searchRadius}km`);
-    
-    // Format response
+
+    const { rows } = await runQuery(sql, params);
+
     res.json({
       success: true,
-      center: { lat: latitude, lng: longitude },
-      radius: searchRadius,
-      total: result.rows.length,
-      schools: result.rows.map(school => ({
-        ...school,
-        latitude: school.latitude,
-        longitude: school.longitude,
-        distance: school.distance_km ? `${school.distance_km.toFixed(1)}km` : null,
-        ofsted_label: getOfstedLabel(school.ofsted_rating),
-        overall_rating: school.overall_rating ? parseFloat(school.overall_rating) : null,
-        rating_display: school.overall_rating ? 
-          (parseFloat(school.overall_rating) >= 10 ? '10' : `${parseFloat(school.overall_rating).toFixed(1)}`) + '/10' 
-          : 'N/A'
+      center: { lat, lng },
+      radius,
+      total: rows.length,
+      schools: rows.map((row) => ({
+        ...mapSchoolRow(row),
+        distance: row.distance_km !== null && row.distance_km !== undefined
+          ? `${Number(row.distance_km).toFixed(1)} km`
+          : null
       }))
     });
-    
   } catch (error) {
-    console.error('Nearby search error:', error);
-    res.status(500).json({ 
-      error: 'Failed to search nearby schools',
-      message: error.message 
+    console.error("Nearby search error", error);
+    res.status(500).json({
+      error: "La recherche geographique a echoue",
+      message: error.message
     });
   }
 });
 
-
-
-/**
- * @route   GET /api/search/postcode/:postcode
- * @desc    Search schools by specific postcode
- * @example /api/search/postcode/SW1A%201AA
- */
-router.get('/postcode/:postcode', async (req, res) => {
+router.get("/postcode/:postcode", async (req, res) => {
   try {
-    const { postcode } = req.params;
-    const { radius = 3 } = req.query;
-
-    // Now using stored overall_rating
-    const sqlQuery = `
-      SELECT 
-        s.*,
-        o.overall_effectiveness as ofsted_rating,
-        COALESCE(c.number_on_roll, s.total_pupils) AS number_on_roll
-      FROM uk_schools s
-      LEFT JOIN uk_ofsted_inspections o ON s.urn = o.urn
-      LEFT JOIN uk_census_data c ON s.urn = c.urn
-      WHERE UPPER(SUBSTRING(s.postcode, 1, 4)) = UPPER(SUBSTRING($1, 1, 4))
-      ORDER BY s.overall_rating DESC NULLS LAST, s.name
-      LIMIT 50
-    `;
-    
-    const result = await query(sqlQuery, [postcode]);
-    
-    res.json({
-      success: true,
-      postcode: postcode,
-      radius: radius,
-      total: result.rows.length,
-      schools: result.rows.map(school => ({
-        ...school,
-        ofsted_label: getOfstedLabel(school.ofsted_rating),
-        overall_rating: school.overall_rating ? parseFloat(school.overall_rating) : null,
-        rating_display: school.overall_rating ? `${parseFloat(school.overall_rating).toFixed(1)}/10` : 'N/A'
-      }))
-    });
-
-  } catch (error) {
-    console.error('Postcode search error:', error);
-    res.status(500).json({ 
-      error: 'Failed to search by postcode',
-      message: error.message 
-    });
-  }
-});
-
-/**
- * @route   GET /api/search/city/:city
- * @desc    Get top schools for a city/town
- * @example /api/search/city/london?limit=10
- */
-router.get('/city/:city', async (req, res) => {
-  try {
-    const { city } = req.params;
-    const { limit = 10, phase } = req.query;
-
-    let sqlQuery = `
-      SELECT 
-        s.urn,
-        s.name,
-        s.postcode,
-        s.town,
-        s.phase_of_education,
-        s.type_of_establishment,
-        COALESCE(s.overall_rating, 5.0) as overall_rating,  -- Use stored rating or default to 5
-        s.rating_percentile,
-        o.overall_effectiveness as ofsted_rating,
-        COALESCE(c.number_on_roll, s.total_pupils) AS number_on_roll
-      FROM uk_schools s
-      LEFT JOIN uk_ofsted_inspections o ON s.urn = o.urn
-      LEFT JOIN uk_census_data c ON s.urn = c.urn
-      WHERE LOWER(s.town) = LOWER($1) OR LOWER(s.local_authority) = LOWER($1)
-    `;
-
-    const params = [city];
-    
-    if (phase) {
-      sqlQuery += ` AND s.phase_of_education = $2`;
-      params.push(phase);
+    const postcode = String(req.params.postcode || "").trim();
+    const limit = clampLimit(req.query.limit || 50, 50);
+    if (!postcode) {
+      return res.status(400).json({ error: "Code postal requis" });
     }
 
-    sqlQuery += ` ORDER BY s.overall_rating DESC NULLS LAST, o.overall_effectiveness ASC NULLS LAST`;
-    sqlQuery += ` LIMIT $${params.length + 1}`;
-    params.push(parseInt(limit));
+    const prefix = sanitizePrefixTerm(postcode);
 
-    const result = await query(sqlQuery, params);
-
-    // Get city statistics
-    const statsSql = `
-      SELECT 
-        COUNT(DISTINCT s.urn) as total_schools,
-        COUNT(DISTINCT CASE WHEN s.phase_of_education = 'Primary' THEN s.urn END) as primary_count,
-        COUNT(DISTINCT CASE WHEN s.phase_of_education = 'Secondary' THEN s.urn END) as secondary_count,
-        COUNT(DISTINCT CASE WHEN o.overall_effectiveness = 1 THEN s.urn END) as outstanding_count,
-        COUNT(DISTINCT CASE WHEN o.overall_effectiveness = 2 THEN s.urn END) as good_count,
-        AVG(s.overall_rating) as avg_rating
-      FROM uk_schools s
-      LEFT JOIN uk_ofsted_inspections o ON s.urn = o.urn
-      WHERE LOWER(s.town) = LOWER($1) OR LOWER(s.local_authority) = LOWER($1)
-    `;
-
-    const statsResult = await query(statsSql, [city]);
-    const stats = statsResult.rows[0];
+    const { rows } = await runQuery(
+      `
+        SELECT
+          e.identifiant_de_l_etablissement AS uai,
+          e.nom_etablissement AS name,
+          e.nom_commune AS commune,
+          e.code_postal,
+          e.type_etablissement,
+          e.statut_public_prive,
+          e.type_contrat_prive,
+          e.libelle_departement AS departement,
+          e.libelle_academie AS academie,
+          e.libelle_region AS region,
+          e.adresse_1,
+          e.adresse_2,
+          e.adresse_3,
+          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          NULLIF(e.latitude, '')::double precision AS latitude,
+          NULLIF(e.longitude, '')::double precision AS longitude,
+          stats.avg_overall_rating,
+          stats.total_reviews,
+          stats.recommendation_percentage
+        FROM fr_ecoles e
+        LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
+        WHERE e.code_postal ILIKE $1
+        ORDER BY e.nom_etablissement ASC
+        LIMIT $2
+      `,
+      [prefix, limit]
+    );
 
     res.json({
       success: true,
-      city: city,
-      statistics: {
-        total_schools: parseInt(stats.total_schools) || 0,
-        primary_schools: parseInt(stats.primary_count) || 0,
-        secondary_schools: parseInt(stats.secondary_count) || 0,
-        outstanding_schools: parseInt(stats.outstanding_count) || 0,
-        good_schools: parseInt(stats.good_count) || 0,
-        average_rating: stats.avg_rating ? parseFloat(stats.avg_rating).toFixed(1) : null
-      },
-      top_schools: result.rows.map(school => ({
-        ...school,
-        ofsted_label: getOfstedLabel(school.ofsted_rating),
-        overall_rating: school.overall_rating ? parseFloat(school.overall_rating) : null,
-        rating_display: school.overall_rating ? `${parseFloat(school.overall_rating).toFixed(1)}/10` : 'N/A'
-      }))
+      postcode,
+      total: rows.length,
+      schools: rows.map(mapSchoolRow)
     });
-
   } catch (error) {
-    console.error('City search error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get schools for city',
-      message: error.message 
+    console.error("Postcode search error", error);
+    res.status(500).json({
+      error: "Recherche par code postal indisponible",
+      message: error.message
     });
   }
 });
 
-/**
- * @route   GET /api/search/suggestions
- * @desc    Get autocomplete suggestions
- * @query   q (search term)
- * @example /api/search/suggestions?q=West
- */
-router.get('/suggestions', async (req, res) => {
+router.get("/city/:city", async (req, res) => {
   try {
-    const { q } = req.query;
-    
-    if (!q || q.length < 2) {
+    const city = String(req.params.city || "").trim();
+    const limit = clampLimit(req.query.limit || 20, 50);
+    if (city.length < 2) {
+      return res.status(400).json({ error: "Nom de commune invalide" });
+    }
+
+    const likeTerm = sanitizeLikeTerm(city);
+
+    const { rows } = await runQuery(
+      `
+        SELECT
+          e.identifiant_de_l_etablissement AS uai,
+          e.nom_etablissement AS name,
+          e.nom_commune AS commune,
+          e.code_postal,
+          e.type_etablissement,
+          e.statut_public_prive,
+          e.type_contrat_prive,
+          e.libelle_departement AS departement,
+          e.libelle_academie AS academie,
+          e.libelle_region AS region,
+          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          stats.avg_overall_rating,
+          stats.total_reviews,
+          stats.recommendation_percentage
+        FROM fr_ecoles e
+        LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
+        WHERE
+          e.nom_commune ILIKE $1
+          OR e.libelle_departement ILIKE $1
+        ORDER BY
+          COALESCE(stats.avg_overall_rating, 0) DESC,
+          COALESCE(NULLIF(e.nombre_d_eleves, '')::int, 0) DESC,
+          e.nom_etablissement ASC
+        LIMIT $2
+      `,
+      [likeTerm, limit]
+    );
+
+    res.json({
+      success: true,
+      city,
+      total: rows.length,
+      schools: rows.map(mapSchoolRow)
+    });
+  } catch (error) {
+    console.error("City search error", error);
+    res.status(500).json({
+      error: "Recherche par commune indisponible",
+      message: error.message
+    });
+  }
+});
+
+router.get("/suggestions", async (req, res) => {
+  try {
+    const rawQ = String(req.query.q || "").trim();
+    if (rawQ.length < 2) {
       return res.json({ suggestions: [] });
     }
 
-    const sqlQuery = `
-      (
-        SELECT DISTINCT 
-          name as suggestion,
-          'school' as type,
-          urn as id,
-          overall_rating
-        FROM uk_schools
-        WHERE LOWER(name) LIKE LOWER($1)
-        ORDER BY overall_rating DESC NULLS LAST
-        LIMIT 5
-      )
-      UNION ALL
-      (
-        SELECT DISTINCT 
-          town as suggestion,
-          'town' as type,
-          NULL as id,
-          NULL as overall_rating
-        FROM uk_schools
-        WHERE LOWER(town) LIKE LOWER($1)
-        AND town IS NOT NULL
-        LIMIT 3
-      )
-      UNION ALL
-      (
-        SELECT DISTINCT 
-          local_authority as suggestion,
-          'la' as type,
-          NULL as id,
-          NULL as overall_rating
-        FROM uk_schools
-        WHERE LOWER(local_authority) LIKE LOWER($1)
-        AND local_authority IS NOT NULL
-        LIMIT 2
-      )
-      LIMIT 10
-    `;
-    
-    const result = await query(sqlQuery, [`${q}%`]);
-    
+    const likeTerm = sanitizeLikeTerm(rawQ);
+
+    const { rows } = await runQuery(
+      `
+        (
+          SELECT 
+            e.nom_etablissement AS suggestion,
+            'school' AS type,
+            e.identifiant_de_l_etablissement AS id,
+            stats.avg_overall_rating AS avg_rating
+          FROM fr_ecoles e
+          LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
+          WHERE e.nom_etablissement ILIKE $1
+          ORDER BY stats.avg_overall_rating DESC NULLS LAST, e.nom_etablissement ASC
+          LIMIT 5
+        )
+        UNION ALL
+        (
+          SELECT DISTINCT
+            e.nom_commune AS suggestion,
+            'city' AS type,
+            NULL AS id,
+            NULL AS avg_rating
+          FROM fr_ecoles e
+          WHERE e.nom_commune ILIKE $1
+          LIMIT 3
+        )
+        UNION ALL
+        (
+          SELECT DISTINCT
+            e.libelle_departement AS suggestion,
+            'departement' AS type,
+            NULL AS id,
+            NULL AS avg_rating
+          FROM fr_ecoles e
+          WHERE e.libelle_departement ILIKE $1
+          LIMIT 2
+        )
+      `,
+      [likeTerm]
+    );
+
     res.json({
       success: true,
-      suggestions: result.rows.map(row => ({
-        ...row,
-        rating_display: row.overall_rating ? `${parseFloat(row.overall_rating).toFixed(1)}/10` : null
+      suggestions: rows.map((row) => ({
+        suggestion: row.suggestion,
+        type: row.type,
+        id: row.id,
+        rating_display: row.avg_rating !== null && row.avg_rating !== undefined
+          ? `${(Number(row.avg_rating) * 2).toFixed(1)}/10`
+          : null
       }))
     });
-
   } catch (error) {
-    console.error('Suggestions error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get suggestions',
-      message: error.message 
+    console.error("Suggestions error", error);
+    res.status(500).json({
+      error: "Auto-completion indisponible",
+      message: error.message
     });
   }
 });
 
-/**
- * @route   GET /api/search/filters
- * @desc    Get available filter options
- * @example /api/search/filters
- */
-router.get('/filters', async (req, res) => {
+router.get("/filters", async (_req, res) => {
   try {
-    // Get unique phases
-    const phasesQuery = `
-      SELECT DISTINCT phase_of_education as value, COUNT(*) as count
-      FROM uk_schools
-      WHERE phase_of_education IS NOT NULL
-      GROUP BY phase_of_education
-      ORDER BY count DESC
-    `;
-    
-    // Get unique local authorities
-    const laQuery = `
-      SELECT DISTINCT local_authority as value, COUNT(*) as count
-      FROM uk_schools
-      WHERE local_authority IS NOT NULL
-      GROUP BY local_authority
-      ORDER BY local_authority
-    `;
-    
-    // Get unique school types
-    const typesQuery = `
-      SELECT DISTINCT type_of_establishment as value, COUNT(*) as count
-      FROM uk_schools
-      WHERE type_of_establishment IS NOT NULL
-      GROUP BY type_of_establishment
-      ORDER BY count DESC
-      LIMIT 20
-    `;
-
-    const [phases, localAuthorities, types] = await Promise.all([
-      query(phasesQuery),
-      query(laQuery),
-      query(typesQuery)
+    const [typesRes, statusRes, regionRes] = await Promise.all([
+      runQuery(
+        `
+          SELECT e.type_etablissement AS value, COUNT(*) AS count
+          FROM fr_ecoles e
+          WHERE e.type_etablissement IS NOT NULL
+          GROUP BY e.type_etablissement
+          ORDER BY count DESC
+          LIMIT 50
+        `,
+        []
+      ),
+      runQuery(
+        `
+          SELECT e.statut_public_prive AS value, COUNT(*) AS count
+          FROM fr_ecoles e
+          WHERE e.statut_public_prive IS NOT NULL
+          GROUP BY e.statut_public_prive
+          ORDER BY count DESC
+        `,
+        []
+      ),
+      runQuery(
+        `
+          SELECT e.libelle_region AS value, COUNT(*) AS count
+          FROM fr_ecoles e
+          WHERE e.libelle_region IS NOT NULL
+          GROUP BY e.libelle_region
+          ORDER BY count DESC
+        `,
+        []
+      )
     ]);
 
     res.json({
       success: true,
       filters: {
-        phases: phases.rows,
-        localAuthorities: localAuthorities.rows,
-        types: types.rows,
-        ofstedRatings: [
-          { value: 1, label: 'Outstanding', count: null },
-          { value: 2, label: 'Good', count: null },
-          { value: 3, label: 'Requires Improvement', count: null },
-          { value: 4, label: 'Inadequate', count: null }
-        ]
+        types: typesRes.rows,
+        statuts: statusRes.rows,
+        regions: regionRes.rows
       }
     });
-
   } catch (error) {
-    console.error('Filters error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get filters',
-      message: error.message 
+    console.error("Filters error", error);
+    res.status(500).json({
+      error: "Filtres indisponibles",
+      message: error.message
     });
   }
 });
-
-// Helper function to convert Ofsted rating to label
-function getOfstedLabel(rating) {
-  const labels = {
-    1: 'Outstanding',
-    2: 'Good',
-    3: 'Requires Improvement',
-    4: 'Inadequate'
-  };
-  return labels[rating] || 'Not Inspected';
-}
 
 module.exports = router;
