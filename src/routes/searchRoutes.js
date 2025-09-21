@@ -310,7 +310,7 @@ router.get("/", async (req, res) => {
     const limit = clampLimit(req.query.limit);
     const offset = clampOffset(req.query.offset);
 
-    if (rawQ.length < 2) {
+    if (rawQ.length < 2 && String(type) !== 'all') {
       return res.status(400).json({
         error: "La recherche doit contenir au moins 2 caracteres"
       });
@@ -361,6 +361,29 @@ router.get("/", async (req, res) => {
         OR e.libelle_departement ILIKE $${departementIdx}
         OR e.code_postal ILIKE $${postalIdx}
       )`);
+    }
+
+    // Additional boolean/flag filters from CSV (e.g., restauration, hebergement, ulis, etc.)
+    const rawFlags = String(req.query.flags || '').trim();
+    if (rawFlags) {
+      const cols = rawFlags.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const supported = new Set([
+        'voie_generale','voie_technologique','voie_professionnelle',
+        'restauration','hebergement','ulis','apprentissage','segpa',
+        'section_arts','section_cinema','section_theatre','section_sport',
+        'section_internationale','section_europeenne',
+        'lycee_agricole','lycee_militaire','lycee_des_metiers'
+      ]);
+      const flagConds = [];
+      cols.forEach(col => {
+        if (supported.has(col)) {
+          // In the CSV these are generally '1' when present; accept any non-zero, non-empty
+          flagConds.push(`(NULLIF(e.${col}, '') IS NOT NULL AND e.${col} <> '0')`);
+        }
+      });
+      if (flagConds.length) {
+        whereClauses.push(flagConds.join(' AND '));
+      }
     }
 
     const categories = parseList(req.query.categories);
