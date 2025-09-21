@@ -72,10 +72,11 @@ function updateSchoolMeta(school) {
   const slug = rawName ? slugFn(rawName) : '';
   const desiredPath = `/school/${school.urn}${slug ? `-${slug}` : ''}`;
   const currentPath = window.location.pathname;
-  if (currentPath.startsWith(`/school/${school.urn}`) && currentPath !== desiredPath) {
+  const isProfilePath = currentPath.startsWith(`/school/${school.urn}`) || currentPath.endsWith('/school.html') || currentPath.endsWith('school.html');
+  if (isProfilePath && currentPath !== desiredPath) {
     const newUrl = `${desiredPath}${window.location.search || ''}${window.location.hash || ''}`;
     if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', newUrl);
+      try { window.history.replaceState(null, '', newUrl); } catch {}
     }
   }
 
@@ -205,8 +206,17 @@ function updateSchoolMeta(school) {
   }
 }
 
-// Extract URN from URL (supports /school/123456 or /something/123456-name)
+// Extract URN from URL
+// Supports:
+//  - /school/123456 or /something/123456-name
+//  - /school.html?urn=123456 (static fallback)
 function extractURN() {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const qpUrn = params.get('urn');
+    if (qpUrn && String(qpUrn).trim()) return String(qpUrn).trim();
+  } catch {}
+
   const parts = (window.location.pathname || '').split('/').filter(Boolean);
   for (let i = parts.length - 1; i >= 0; i--) {
     const m = parts[i].match(/^(\d{4,})/); // 4+ digits to avoid accidental matches

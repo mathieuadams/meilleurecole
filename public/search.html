@@ -1290,6 +1290,15 @@
                                 ${school.type_of_establishment || 'Etablissement'}<br>
                                 <a href="${schoolPathFromData(school)}">Voir la fiche</a>
                             `);
+                        // Clicking the marker navigates directly to the school profile
+                        marker.on('click', function() {
+                            try {
+                                window.location.href = schoolPathFromData(school);
+                            } catch (e) {
+                                // Fallback: open popup if navigation fails for any reason
+                                try { this.openPopup(); } catch {}
+                            }
+                        });
                         
                         markers.addLayer(marker);
                     }

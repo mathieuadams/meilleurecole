@@ -169,12 +169,17 @@ function schoolSlug(name = '') {
 }
 
 function schoolPathFromData(schoolLike) {
-    if (!schoolLike) return '/school';
+    if (!schoolLike) return '/school.html';
     const urn = schoolLike.urn || schoolLike.id || '';
     const name = schoolLike.name || schoolLike.school_name || '';
-    if (!urn) return '/school';
-    const slug = schoolSlug(name);
-    return slug ? `/school/${urn}-${slug}` : `/school/${urn}`;
+    if (!urn) return '/school.html';
+    // Prefer linking to the HTML profile directly so it works in static and server modes.
+    // school.js will upgrade URL to "/school/{urn}-{slug}" once loaded.
+    const params = new URLSearchParams({ urn: String(urn) });
+    if (name) {
+        try { params.set('name', String(name)); } catch {}
+    }
+    return `/school.html?${params.toString()}`;
 }
 
 window.schoolSlug = schoolSlug;
