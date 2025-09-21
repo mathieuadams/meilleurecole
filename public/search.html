@@ -833,7 +833,7 @@
                 'independent': 'Decouvrez les etablissements prives disponibles',
                 'academy': 'Explorez les etablissements sous contrat'
             };
-            return subtitles[type] || 'Trouvez l'etablissement adapte a votre projet';
+            return subtitles[type] || "Trouvez l'etablissement adapte a votre projet";
         }
         
         function setInitialTypeFilter(type) {
@@ -1109,10 +1109,7 @@
             currentView = view;
             
             // Update buttons
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.closest('.view-btn').classList.add('active');
+            const _btns = Array.from(document.querySelectorAll('.view-btn')); _btns.forEach(b=>b.classList.remove('active')); if (view === 'map' && _btns[1]) { _btns[1].classList.add('active'); } else if (_btns[0]) { _btns[0].classList.add('active'); }
             
             // Toggle views
             if (view === 'map') {
@@ -1348,3 +1345,4 @@
     </script>
 </body>
 </html>
+
