@@ -596,72 +596,59 @@
                     <h3 class="filter-title">Type d'etablissement</h3>
                     <div class="filter-checkbox-group" id="schoolTypeFilters">
                         <div class="filter-checkbox">
-                            <input type="checkbox" id="type-primary" value="Primary">
-                            <label for="type-primary">Ecoles primaires</label>
+                            <input type="checkbox" id="type-ecole" value="ecole">
+                            <label for="type-ecole">Ecoles maternelles et elementaires</label>
                         </div>
                         <div class="filter-checkbox">
-                            <input type="checkbox" id="type-secondary" value="Secondary">
-                            <label for="type-secondary">Colleges et lycees</label>
+                            <input type="checkbox" id="type-college" value="college">
+                            <label for="type-college">Colleges</label>
                         </div>
                         <div class="filter-checkbox">
-                            <input type="checkbox" id="type-sixth-form" value="Sixth Form">
-                            <label for="type-sixth-form">Lycees post-bac</label>
+                            <input type="checkbox" id="type-lycee" value="lycee">
+                            <label for="type-lycee">Lycees et lycees professionnels</label>
                         </div>
                         <div class="filter-checkbox">
-                            <input type="checkbox" id="type-special" value="Special">
-                            <label for="type-special">Etablissements specialises</label>
-                        </div>
-                        <div class="filter-checkbox">
-                            <input type="checkbox" id="type-independent" value="Independent">
-                            <label for="type-independent">Etablissements prives</label>
-                        </div>
-                        <div class="filter-checkbox">
-                            <input type="checkbox" id="type-academy" value="Academy">
-                            <label for="type-academy">Etablissements sous contrat</label>
+                            <input type="checkbox" id="type-specialise" value="specialise">
+                            <label for="type-specialise">Etablissements specialises et medico-sociaux</label>
                         </div>
                     </div>
                 </div>
                 
+                
                 <div class="filter-section">
-                    <h3 class="filter-title">Appreciation d'inspection</h3>
-                    <div id="ofstedFilters">
-                        <div class="filter-rating">
-                            <input type="checkbox" id="ofsted-1" value="1">
-                            <span class="rating-badge outstanding">Excellent</span>
+                    <h3 class="filter-title">Statut de l'etablissement</h3>
+                    <div id="statusFilters">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="status-public" value="public">
+                            <label for="status-public">Public</label>
                         </div>
-                        <div class="filter-rating">
-                            <input type="checkbox" id="ofsted-2" value="2">
-                            <span class="rating-badge good">Bon</span>
-                        </div>
-                        <div class="filter-rating">
-                            <input type="checkbox" id="ofsted-3" value="3">
-                            <span class="rating-badge requires-improvement">A ameliorer</span>
-                        </div>
-                        <div class="filter-rating">
-                            <input type="checkbox" id="ofsted-4" value="4">
-                            <span class="rating-badge inadequate">Insuffisant</span>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="status-prive" value="prive">
+                            <label for="status-prive">Prive</label>
                         </div>
                     </div>
                 </div>
+                </div>
                 
                 <div class="filter-section">
-                    <h3 class="filter-title">Note moyenne</h3>
+                    <h3 class="filter-title">Note moyenne des avis</h3>
                     <div>
                         <label for="ratingRange" style="font-size: 0.875rem; color: #6b7280;">
-                            Note minimale : <span id="ratingValue">5</span>/10
+                            Note minimale : <span id="ratingValue">1</span>/5
                         </label>
                         <input 
                             type="range" 
                             id="ratingRange" 
                             min="1" 
-                            max="10" 
-                            value="5"
+                            max="5" 
+                            step="0.5" 
+                            value="1"
                             style="width: 100%; margin-top: 0.5rem;"
                         />
                     </div>
                 </div>
                 
-                <button class="clear-filters" onclick="clearAllFilters()">Reinitialiser les filtres</button>
+                <button class="clear-filters" type="button">Reinitialiser les filtres</button>
             </aside>
             
             <!-- Results Section -->
@@ -671,12 +658,8 @@
                         <strong id="resultsCount">0</strong> etablissements trouves
                     </div>
                     <div class="view-toggle">
-                        <button class="view-btn active" onclick="toggleView('list')">
-                            <span>📋</span> List
-                        </button>
-                        <button class="view-btn" onclick="toggleView('map')">
-                            <span>🗺️</span> Map
-                        </button>
+                        <button class="view-btn active" type="button" data-view="list">Liste</button>
+                        <button class="view-btn" type="button" data-view="map">Carte</button>
                     </div>
                 </div>
                 
@@ -732,7 +715,7 @@
             const pageUrl = buildFullUrl();
             const searchTerm = (query || area || '').trim();
             const typeTitle = type ? getTypeTitle(type) : null;
-            let title = 'Recherche d'etablissements en France | MeilleureEcole.fr';
+            let title = "Recherche d'etablissements en France | MeilleureEcole.fr";
             let description = "Recherchez des etablissements scolaires en France par nom, commune ou code postal. Filtrez selon le niveau, le statut ou la note moyenne.";
 
             if (searchTerm) {
