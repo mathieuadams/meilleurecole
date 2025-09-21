@@ -98,23 +98,49 @@ app.use('/api', contactRoutes);
 // ---- HTML pages helper function
 const sendPublic = (res, file) => res.sendFile(path.join(PUBLIC_DIR, file));
 
-// ---- Main pages
+// ---- Pages principales
 app.get('/', (_req, res) => sendPublic(res, 'index.html'));
-app.get(['/search', '/search.html'], (_req, res) => sendPublic(res, 'search.html'));
-app.get(['/compare', '/compare.html'], (_req, res) => sendPublic(res, 'compare.html'));
+app.get('/recherche', (_req, res) => sendPublic(res, 'recherche.html'));
+app.get('/avis', (_req, res) => sendPublic(res, 'avis.html'));
+app.get('/deposer-avis', (_req, res) => sendPublic(res, 'deposer-avis.html'));
+app.get('/a-propos', (_req, res) => sendPublic(res, 'a-propos.html'));
+app.get('/conditions', (_req, res) => sendPublic(res, 'conditions.html'));
+app.get('/confidentialite', (_req, res) => sendPublic(res, 'confidentialite.html'));
+app.get('/contact', (_req, res) => sendPublic(res, 'contact.html'));
+app.get('/sources', (_req, res) => sendPublic(res, 'sources.html'));
+app.get('/methode', (_req, res) => sendPublic(res, 'methode.html'));
+app.get('/faq', (_req, res) => sendPublic(res, 'faq.html'));
 
-// ---- Review pages
-app.get(['/review','/review.html'], (_req, res) => sendPublic(res, 'review.html'));
-app.get(['/write-review','/write-review.html'], (_req, res) => sendPublic(res, 'write-review.html'));
+// ---- Pages dynamiques
+app.get('/ville/:slug', (_req, res) => sendPublic(res, 'ville.html'));
+app.get('/academie/:slug', (_req, res) => sendPublic(res, 'academie.html'));
+app.get('/etablissement/:identifier', (_req, res) => sendPublic(res, 'etablissement.html'));
 
-// ---- Legal and informational pages
-app.get(['/about','/about.html'], (_req, res) => sendPublic(res, 'about.html'));
-app.get(['/terms','/terms.html'], (_req, res) => sendPublic(res, 'terms.html'));
-app.get(['/privacy','/privacy.html'], (_req, res) => sendPublic(res, 'privacy.html'));
-app.get(['/contact','/contact.html'], (_req, res) => sendPublic(res, 'contact.html'));
-app.get(['/data-sources','/data-sources.html'], (_req, res) => sendPublic(res, 'data-sources.html'));
-app.get(['/methodology','/methodology.html'], (_req, res) => sendPublic(res, 'methodology.html'));
-app.get(['/faq','/faq.html'], (_req, res) => sendPublic(res, 'faq.html'));
+// ---- Redirections legacy
+app.get(['/search', '/search.html'], (req, res) => {
+  const suffix = req.originalUrl.replace(/^\/search(?:\.html)?/, '');
+  return res.redirect(301, /recherche);
+});
+app.get(['/review', '/review.html'], (_req, res) => res.redirect(301, '/avis'));
+app.get(['/write-review', '/write-review.html'], (_req, res) => res.redirect(301, '/deposer-avis'));
+app.get(['/about', '/about.html'], (_req, res) => res.redirect(301, '/a-propos'));
+app.get(['/terms', '/terms.html'], (_req, res) => res.redirect(301, '/conditions'));
+app.get(['/privacy', '/privacy.html'], (_req, res) => res.redirect(301, '/confidentialite'));
+app.get(['/data-sources', '/data-sources.html'], (_req, res) => res.redirect(301, '/sources'));
+app.get(['/methodology', '/methodology.html'], (_req, res) => res.redirect(301, '/methode'));
+app.get(['/school', '/school.html'], (_req, res) => res.redirect(301, '/recherche'));
+app.get('/school/:identifier', (req, res) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  return res.redirect(301, /etablissement/);
+});
+app.get('/city/:slug', (req, res) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  return res.redirect(301, /ville/);
+});
+app.get('/local-authority/:slug', (req, res) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  return res.redirect(301, /academie/);
+});
 
 // ---- School type specific search redirects (from footer links)
 app.get('/schools/primary', (_req, res) => {

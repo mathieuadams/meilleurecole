@@ -7,12 +7,12 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/about</loc>
+    <loc>https://www.meilleureecole.fr/a-propos</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/city</loc>
+    <loc>https://www.meilleureecole.fr/ville</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>weekly</changefreq>
   </url>
@@ -22,7 +22,7 @@
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/data-sources</loc>
+    <loc>https://www.meilleureecole.fr/sources</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
   </url>
@@ -32,42 +32,42 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/local-authority</loc>
+    <loc>https://www.meilleureecole.fr/academie</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/methodology</loc>
+    <loc>https://www.meilleureecole.fr/methode</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/privacy</loc>
+    <loc>https://www.meilleureecole.fr/confidentialite</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/review</loc>
+    <loc>https://www.meilleureecole.fr/avis</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/school</loc>
+    <loc>https://www.meilleureecole.fr/etablissement</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/search</loc>
+    <loc>https://www.meilleureecole.fr/recherche</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/terms</loc>
+    <loc>https://www.meilleureecole.fr/conditions</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://www.meilleureecole.fr/write-review</loc>
+    <loc>https://www.meilleureecole.fr/deposer-avis</loc>
     <lastmod>2025-09-16</lastmod>
     <changefreq>monthly</changefreq>
   </url>
