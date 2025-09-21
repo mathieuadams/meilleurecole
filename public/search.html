@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search UK Schools | MeilleureEcole.fr Results</title>
-    <meta id="metaDescription" name="description" content="Search UK schools on MeilleureEcole.fr by name, area or postcode. Filter by phase, Ofsted rating and performance to find the best match." />
+    <title>Recherche d'etablissements en France | MeilleureEcole.fr</title>
+    <meta id="metaDescription" name="description" content="Recherchez des etablissements scolaires en France par nom, commune ou code postal. Filtrez selon le niveau, le statut ou la note moyenne." />
     <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="https://www.meilleureecole.fr/search" id="canonicalLink" />
-    <link rel="alternate" href="https://www.meilleureecole.fr/search" hreflang="en-gb" id="alternateLink" />
+    <link rel="alternate" href="https://www.meilleureecole.fr/search" hreflang="fr-fr" id="alternateLink" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#2563eb" />
     <meta property="og:site_name" content="MeilleureEcole.fr" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Search UK Schools | MeilleureEcole.fr Results" id="ogTitle" />
-    <meta property="og:description" content="Find UK schools by area, Ofsted rating and more using MeilleureEcole.fr search." id="ogDescription" />
+    <meta property="og:title" content="Recherche d'etablissements en France | MeilleureEcole.fr" id="ogTitle" />
+    <meta property="og:description" content="Decouvrez des etablissements scolaires en France selon la commune, l'academie ou la note moyenne avec MeilleureEcole.fr." id="ogDescription" />
     <meta property="og:url" content="https://www.meilleureecole.fr/search" id="ogUrl" />
     <meta property="og:image" content="https://www.meilleureecole.fr/images/findschool-social.png" />
     <meta property="og:image:alt" content="MeilleureEcole.fr social preview card" />
-    <meta property="og:locale" content="en_GB" />
+    <meta property="og:locale" content="fr_FR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Search UK Schools | MeilleureEcole.fr" id="twitterTitle" />
-    <meta name="twitter:description" content="Discover nearby schools with MeilleureEcole.fr's powerful search." id="twitterDescription" />
+    <meta name="twitter:title" content="Recherche d'etablissements en France | MeilleureEcole.fr" id="twitterTitle" />
+    <meta name="twitter:description" content="Trouvez rapidement un etablissement proche grace au moteur de recherche MeilleureEcole.fr." id="twitterDescription" />
     <meta name="twitter:image" content="https://www.meilleureecole.fr/images/findschool-social.png" />
     <meta name="twitter:image:alt" content="MeilleureEcole.fr social preview card" />
     
@@ -447,6 +447,15 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 0.75rem;
         }
+
+        .detail-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+            min-width: 110px;
+            text-transform: uppercase;
+        }
+
         
         .detail-item {
             display: flex;
@@ -553,8 +562,8 @@
     <!-- Search Header -->
     <section class="search-header">
         <div class="container">
-            <h1 id="pageTitle">Search Schools</h1>
-            <p id="searchSubtitle">Find the perfect school for your child</p>
+            <h1 id='pageTitle'>Rechercher un etablissement</h1>
+            <p id='searchSubtitle'>Trouvez l'etablissement adapte a votre projet</p>
         </div>
     </section>
     
@@ -564,82 +573,82 @@
             <!-- Filters Sidebar -->
             <aside class="filters-sidebar">
                 <div class="filter-section">
-                    <h3 class="filter-title">Search</h3>
+                    <h3 class="filter-title">Recherche</h3>
                     <input 
                         type="text" 
                         id="searchInput" 
                         class="filter-input" 
-                        placeholder="School name or postcode..."
+                        placeholder="Nom de l'etablissement ou code postal..."
                     />
                 </div>
                 
                 <div class="filter-section">
-                    <h3 class="filter-title">Location</h3>
+                    <h3 class="filter-title">Localisation</h3>
                     <input 
                         type="text" 
                         id="locationInput" 
                         class="filter-input" 
-                        placeholder="City or area..."
+                        placeholder="Commune, departement ou region..."
                     />
                 </div>
                 
                 <div class="filter-section">
-                    <h3 class="filter-title">School Type</h3>
+                    <h3 class="filter-title">Type d'etablissement</h3>
                     <div class="filter-checkbox-group" id="schoolTypeFilters">
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-primary" value="Primary">
-                            <label for="type-primary">Primary Schools</label>
+                            <label for="type-primary">Ecoles primaires</label>
                         </div>
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-secondary" value="Secondary">
-                            <label for="type-secondary">Secondary Schools</label>
+                            <label for="type-secondary">Colleges et lycees</label>
                         </div>
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-sixth-form" value="Sixth Form">
-                            <label for="type-sixth-form">Sixth Form Colleges</label>
+                            <label for="type-sixth-form">Lycees post-bac</label>
                         </div>
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-special" value="Special">
-                            <label for="type-special">Special Schools</label>
+                            <label for="type-special">Etablissements specialises</label>
                         </div>
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-independent" value="Independent">
-                            <label for="type-independent">Independent Schools</label>
+                            <label for="type-independent">Etablissements prives</label>
                         </div>
                         <div class="filter-checkbox">
                             <input type="checkbox" id="type-academy" value="Academy">
-                            <label for="type-academy">Academies</label>
+                            <label for="type-academy">Etablissements sous contrat</label>
                         </div>
                     </div>
                 </div>
                 
                 <div class="filter-section">
-                    <h3 class="filter-title">Ofsted Rating</h3>
+                    <h3 class="filter-title">Appreciation d'inspection</h3>
                     <div id="ofstedFilters">
                         <div class="filter-rating">
                             <input type="checkbox" id="ofsted-1" value="1">
-                            <span class="rating-badge outstanding">Outstanding</span>
+                            <span class="rating-badge outstanding">Excellent</span>
                         </div>
                         <div class="filter-rating">
                             <input type="checkbox" id="ofsted-2" value="2">
-                            <span class="rating-badge good">Good</span>
+                            <span class="rating-badge good">Bon</span>
                         </div>
                         <div class="filter-rating">
                             <input type="checkbox" id="ofsted-3" value="3">
-                            <span class="rating-badge requires-improvement">Requires Improvement</span>
+                            <span class="rating-badge requires-improvement">A ameliorer</span>
                         </div>
                         <div class="filter-rating">
                             <input type="checkbox" id="ofsted-4" value="4">
-                            <span class="rating-badge inadequate">Inadequate</span>
+                            <span class="rating-badge inadequate">Insuffisant</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="filter-section">
-                    <h3 class="filter-title">Overall Rating</h3>
+                    <h3 class="filter-title">Note moyenne</h3>
                     <div>
                         <label for="ratingRange" style="font-size: 0.875rem; color: #6b7280;">
-                            Minimum: <span id="ratingValue">5</span>/10
+                            Note minimale : <span id="ratingValue">5</span>/10
                         </label>
                         <input 
                             type="range" 
@@ -652,14 +661,14 @@
                     </div>
                 </div>
                 
-                <button class="clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
+                <button class="clear-filters" onclick="clearAllFilters()">Reinitialiser les filtres</button>
             </aside>
             
             <!-- Results Section -->
             <div class="results-section">
                 <div class="results-header">
                     <div class="results-info">
-                        <strong id="resultsCount">0</strong> schools found
+                        <strong id="resultsCount">0</strong> etablissements trouves
                     </div>
                     <div class="view-toggle">
                         <button class="view-btn active" onclick="toggleView('list')">
@@ -678,7 +687,7 @@
                 <div id="resultsList" class="active">
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>Loading schools...</p>
+                        <p>Chargement des etablissements...</p>
                     </div>
                 </div>
                 
@@ -723,17 +732,17 @@
             const pageUrl = buildFullUrl();
             const searchTerm = (query || area || '').trim();
             const typeTitle = type ? getTypeTitle(type) : null;
-            let title = 'Search UK Schools | MeilleureEcole.fr Results';
-            let description = 'Search UK schools on MeilleureEcole.fr by name, area or postcode. Filter by phase, Ofsted rating and performance data to find the best match.';
+            let title = 'Recherche d'etablissements en France | MeilleureEcole.fr';
+            let description = "Recherchez des etablissements scolaires en France par nom, commune ou code postal. Filtrez selon le niveau, le statut ou la note moyenne.";
 
             if (searchTerm) {
-                const countText = total ? `${total} result${total === 1 ? '' : 's'}` : 'school results';
-                title = `${searchTerm} Schools Search | MeilleureEcole.fr`;
-                description = `Browse ${countText} for ${searchTerm} on MeilleureEcole.fr. Compare Ofsted judgements, performance scores and parent reviews in seconds.`;
+                const countText = total ? `${total} etablissement${total === 1 ? '' : 's'}` : 'etablissements';
+                title = `${searchTerm} | MeilleureEcole.fr`;
+                description = `Consultez ${countText} pour ${searchTerm} sur MeilleureEcole.fr. Comparez les notes moyennes, les resultats et les avis de parents.`;
             } else if (typeTitle) {
                 const countText = total ? `${total} ${typeTitle.toLowerCase()}` : typeTitle.toLowerCase();
-                title = `${typeTitle} Search | MeilleureEcole.fr`;
-                description = `Explore ${countText} across the UK. Filter results by Ofsted rating, academic outcomes and catchment insights.`;
+                title = `${typeTitle} en France | MeilleureEcole.fr`;
+                description = `Explorez ${countText} en France. Affinez les resultats selon la note moyenne, le niveau et la zone geographique.`;
             }
 
             document.title = title;
@@ -802,8 +811,8 @@
                 document.getElementById('searchSubtitle').textContent = getTypeSubtitle(initialType);
                 setInitialTypeFilter(initialType);
             } else if (initialArea) {
-                document.getElementById('pageTitle').textContent = `Schools in ${initialArea}`;
-                document.getElementById('searchSubtitle').textContent = `Browse all schools in ${initialArea}`;
+                document.getElementById('pageTitle').textContent = `Etablissements a ${initialArea}`;
+                document.getElementById('searchSubtitle').textContent = `Consultez tous les etablissements de ${initialArea}`;
                 document.getElementById('locationInput').value = initialArea;
             } else if (initialQuery) {
                 document.getElementById('searchInput').value = initialQuery;
@@ -822,26 +831,26 @@
         
         function getTypeTitle(type) {
             const titles = {
-                'primary': 'Primary Schools',
-                'secondary': 'Secondary Schools',
-                'sixth-form': 'Sixth Form Colleges',
-                'special': 'Special Schools',
-                'independent': 'Independent Schools',
-                'academy': 'Academies'
+                'primary': 'Ecoles maternelles et elementaires',
+                'secondary': 'Colleges et lycees',
+                'sixth-form': 'Lycees post-bac',
+                'special': 'Etablissements specialises',
+                'independent': 'Etablissements prives',
+                'academy': 'Etablissements sous contrat'
             };
-            return titles[type] || 'Search Schools';
+            return titles[type] || "Recherche d'établissements";
         }
         
         function getTypeSubtitle(type) {
             const subtitles = {
-                'primary': 'Find primary schools (ages 4-11) across the UK',
-                'secondary': 'Find secondary schools (ages 11-16/18) across the UK',
-                'sixth-form': 'Find sixth form colleges and post-16 education',
-                'special': 'Find special schools and SEND provision',
-                'independent': 'Find independent and private schools',
-                'academy': 'Find academy schools across the UK'
+                'primary': 'Reperez les ecoles maternelles et elementaires pour les ages 3-11',
+                'secondary': 'Selectionnez un college ou un lycee (11-18 ans)',
+                'sixth-form': 'Trouvez un lycee post-bac ou une formation superieure',
+                'special': 'Identifiez un etablissement specialise ou adapte',
+                'independent': 'Decouvrez les etablissements prives disponibles',
+                'academy': 'Explorez les etablissements sous contrat'
             };
-            return subtitles[type] || 'Find the perfect school for your child';
+            return subtitles[type] || 'Trouvez l'etablissement adapte a votre projet';
         }
         
         function setInitialTypeFilter(type) {
@@ -861,7 +870,7 @@
                 document.getElementById('resultsList').innerHTML = `
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>Loading schools...</p>
+                        <p>Chargement des etablissements...</p>
                     </div>
                 `;
             }
@@ -883,7 +892,7 @@
                 params.append('type', 'location');
             } else {
                 // Default search - get all schools
-                params.append('q', 'school');
+                params.append('q', 'etablissement');
                 params.append('type', 'all');
             }
             
@@ -928,7 +937,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Search error:', error);
+                console.error('Erreur lors de la recherche :', error);
                 displayError();
             }
         }
@@ -978,16 +987,16 @@
                     });
 
                     // Show notification
-                    showNotification(`Found ${totalResults} schools in this area`);
+                    showNotification(`${totalResults} etablissements trouves dans cette zone`);
                 }
             } catch (error) {
-                console.error('Map search error:', error);
-                showNotification('Error searching this area', 'error');
+                console.error('Erreur lors de la recherche sur la carte :', error);
+                showNotification('Erreur lors de la recherche dans cette zone', 'error');
             } finally {
                 // Reset button
                 if (searchBtn) {
                     searchBtn.classList.remove('loading');
-                    searchBtn.innerHTML = '🔍 Search This Area';
+                    searchBtn.innerHTML = 'Rechercher dans cette zone';
                 }
             }
         }
@@ -1004,7 +1013,7 @@
                 filters.schoolTypes.push(checkbox.value);
             });
             
-            // Ofsted ratings
+            // Notes d'inspection
             document.querySelectorAll('#ofstedFilters input:checked').forEach(checkbox => {
                 filters.ofstedRatings.push(checkbox.value);
             });
@@ -1022,8 +1031,8 @@
             if (!searchResults || searchResults.length === 0) {
                 document.getElementById('resultsList').innerHTML = `
                     <div class="no-results">
-                        <h3>No schools found</h3>
-                        <p>Try adjusting your search or filters</p>
+                        <h3>Aucun etablissement trouve</h3>
+                        <p>Modifiez vos filtres ou votre recherche</p>
                     </div>
                 `;
                 return;
@@ -1045,8 +1054,7 @@
                             <div>
                                 <div class="school-card-name">${school.name}</div>
                                 <div class="school-card-type">
-                                    ${school.type_of_establishment || ''} 
-                                    ${school.phase_of_education ? `• ${school.phase_of_education}` : ''}
+                                    ${school.type_of_establishment || ''}${school.phase_of_education ? ` - ${school.phase_of_education}` : ''}
                                 </div>
                             </div>
                             <div class="school-card-rating rating-${ratingClass}">
@@ -1055,20 +1063,20 @@
                         </div>
                         <div class="school-card-details">
                             <div class="detail-item">
-                                <span>📍</span>
+                                <span class="detail-label">COMMUNE</span>
+                                <span>${school.town || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">CODE POSTAL</span>
                                 <span>${school.postcode || '-'}</span>
                             </div>
                             <div class="detail-item">
-                                <span>🎓</span>
-                                <span>Ofsted: ${getOfstedLabel(school.ofsted_rating)}</span>
+                                <span class="detail-label">INSPECTION</span>
+                                <span>${getOfstedLabel(school.ofsted_rating)}</span>
                             </div>
                             <div class="detail-item">
-                                <span>👥</span>
-                                <span>${formatNumber(school.number_on_roll)} students</span>
-                            </div>
-                            <div class="detail-item">
-                                <span>📍</span>
-                                <span>${school.town || '-'}</span>
+                                <span class="detail-label">ELEVES</span>
+                                <span>${formatNumber(school.number_on_roll)} eleves</span>
                             </div>
                         </div>
                     </div>
@@ -1093,7 +1101,7 @@
             
             // Previous button
             html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} 
-                     onclick="searchSchools(${currentPage - 1})">Previous</button>`;
+                     onclick="searchSchools(${currentPage - 1})">Precedent</button>`;
             
             // Page numbers
             for (let i = 1; i <= Math.min(totalPages, 5); i++) {
@@ -1109,7 +1117,7 @@
             
             // Next button
             html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} 
-                     onclick="searchSchools(${currentPage + 1})">Next</button>`;
+                     onclick="searchSchools(${currentPage + 1})">Suivant</button>`;
             
             document.getElementById('pagination').innerHTML = html;
         }
@@ -1137,7 +1145,7 @@
         
         function initializeMap() {
             if (!isMapInitialized) {
-                map = L.map('schoolsMap').setView([52.5, -1.5], 6); // UK center
+                map = L.map('schoolsMap').setView([46.6, 2.4], 6); // France center
                 if (window.getDefaultTileLayer) {
                   window.getDefaultTileLayer(map);
                 } else {
@@ -1162,7 +1170,7 @@
                     },
                     onAdd: function(map) {
                         const div = L.DomUtil.create('div', 'map-search-control');
-                        div.innerHTML = '🔍 Search This Area';
+                        div.innerHTML = 'Rechercher dans cette zone';
                         div.onclick = searchInMapBounds;
                         L.DomEvent.disableClickPropagation(div);
                         return div;
@@ -1218,9 +1226,9 @@
                         const marker = L.marker([lat, lng], { icon })
                             .bindPopup(`
                                 <strong>${school.name}</strong><br>
-                                Rating: ${ratingDisplay}/10<br>
-                                ${school.type_of_establishment || 'School'}<br>
-                                <a href="${schoolPathFromData(school)}">View Details</a>
+                                Note : ${ratingDisplay}/10<br>
+                                ${school.type_of_establishment || 'Etablissement'}<br>
+                                <a href="${schoolPathFromData(school)}">Voir la fiche</a>
                             `);
                         
                         markers.addLayer(marker);
@@ -1236,22 +1244,22 @@
                 if (bounds.isValid()) {
                     map.fitBounds(bounds, { padding: [50, 50] });
                 }
-                console.log(`Mapped ${validSchools.length} schools with coordinates`);
+                console.log(`Cartographie realisee pour ${validSchools.length} etablissements`);
             } else if (searchResults.length > 0) {
                 // No schools have coordinates, show a message
-                console.log(`No coordinates available for ${searchResults.length} schools`);
-                showNotification('Map data not available for these schools', 'info');
+                console.log(`Aucune coordonnee disponible pour ${searchResults.length} etablissements`);
+                showNotification('Les donnees cartographiques ne sont pas disponibles pour ces etablissements', 'info');
                 
                 // Try to center on the general area if we know it
                 const locationQuery = document.getElementById('locationInput').value;
                 if (locationQuery) {
                     // You could geocode the location here
-                    console.log('Would geocode:', locationQuery);
+                    console.log('Geocodage a realiser :', locationQuery);
                 }
             }
             
             if (missingCoords.length > 0) {
-                console.log(`${missingCoords.length} schools missing coordinates`);
+                console.log(`${missingCoords.length} etablissements sans coordonnees`);
             }
         }
         
@@ -1269,8 +1277,8 @@
         function displayError() {
             document.getElementById('resultsList').innerHTML = `
                 <div class="no-results">
-                    <h3>Error loading results</h3>
-                    <p>Please try again later</p>
+                    <h3>Erreur lors du chargement des resultats</h3>
+                    <p>Veuillez reessayer plus tard</p>
                 </div>
             `;
         }
@@ -1285,12 +1293,12 @@
         
         function getOfstedLabel(rating) {
             const labels = {
-                1: 'Outstanding',
-                2: 'Good',
-                3: 'Requires Improvement',
-                4: 'Inadequate'
+                1: 'Excellent',
+                2: 'Bon',
+                3: 'A ameliorer',
+                4: 'Insuffisant'
             };
-            return labels[rating] || 'Not Inspected';
+            return labels[rating] || 'Non inspecte';
         }
         
         function formatNumber(num) {
