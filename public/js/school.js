@@ -374,6 +374,7 @@ function updateBreadcrumbs(school) {
   const la = addr.local_authority ? addr.local_authority : null;
   const country = (school.country || '').toLowerCase();
   const isNonEngland = country && country !== 'england';
+  const isTrust = !!school.is_part_of_trust && !!school.trust_name;
 
   const cityCrumb = document.getElementById('cityCrumb');
   if (cityCrumb && city) {
@@ -386,16 +387,23 @@ function updateBreadcrumbs(school) {
     }
   }
   const laCrumb = document.getElementById('laCrumb');
-  if (laCrumb && la) {
-    laCrumb.textContent = la;
-    const laSlug = la.toLowerCase().replace(/\s+/g, '-');
-    // For non-England, always link to canonical LA route to avoid city slug routing issues
-    if (isNonEngland) {
-      laCrumb.href = `/local-authority/${laSlug}`;
-    } else if (city) {
-      laCrumb.href = `/${city.toLowerCase().replace(/\s+/g, '-')}/${laSlug}`;
-    } else {
-      laCrumb.href = `/local-authority/${laSlug}`;
+  if (laCrumb) {
+    if (isTrust) {
+      const slugger = (window.schoolSlug || ((s) => String(s).toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')));
+      const trustSlug = slugger(school.trust_name);
+      laCrumb.textContent = school.trust_name;
+      laCrumb.href = `/trust/${trustSlug}`;
+    } else if (la) {
+      laCrumb.textContent = la;
+      const laSlug = la.toLowerCase().replace(/\s+/g, '-');
+      // For non-England, always link to canonical LA route to avoid city slug routing issues
+      if (isNonEngland) {
+        laCrumb.href = `/local-authority/${laSlug}`;
+      } else if (city) {
+        laCrumb.href = `/${city.toLowerCase().replace(/\s+/g, '-')}/${laSlug}`;
+      } else {
+        laCrumb.href = `/local-authority/${laSlug}`;
+      }
     }
   }
   const schoolCrumb = document.getElementById('schoolCrumb');

@@ -115,6 +115,9 @@ app.get(['/contact','/contact.html'], (_req, res) => sendPublic(res, 'contact.ht
 app.get(['/data-sources','/data-sources.html'], (_req, res) => sendPublic(res, 'data-sources.html'));
 app.get(['/methodology','/methodology.html'], (_req, res) => sendPublic(res, 'methodology.html'));
 app.get(['/faq','/faq.html'], (_req, res) => sendPublic(res, 'faq.html'));
+// ---- Trust (Academy) pages
+app.get(['/trust','/trust.html'], (_req, res) => sendPublic(res, 'trust.html'));
+app.get('/trust/:trustSlug', (_req, res) => sendPublic(res, 'trust.html'));
 
 // ---- School type specific search redirects (from footer links)
 app.get('/schools/primary', (_req, res) => {
@@ -215,7 +218,7 @@ app.get('/:city', (req, res, next) => {
   const reserved = new Set([
     'api','css','js','components','images','favicon.ico',
     'school','schools','health','compare','about','search',
-    'review','write-review','terms','privacy','contact',
+    'review','write-review','terms','privacy','contact','trust',
     'data-sources','methodology','faq',
     'primary-schools','secondary-schools',
     'saved-schools','parent-resources',
@@ -240,7 +243,7 @@ app.get('/:city/:identifier', (req, res, next) => {
   const reserved = new Set([
     'api','css','js','components','images','favicon.ico',
     'health','compare','about','search',
-    'review','write-review','terms','privacy','contact',
+    'review','write-review','terms','privacy','contact','trust',
     'data-sources','methodology','faq'
   ]);
   
@@ -404,6 +407,135 @@ app.get('/api/local-authority/:laName/summary', async (req, res) => {
     console.error("Erreur lors de la recuperation du resume de l'autorite locale :", error);
     res.status(500).json({ 
       error: "Echec de recuperation du resume de l'autorite locale",
+      message: error.message 
+    });
+  }
+});
+
+// ---- API endpoint for academy trust summary
+app.get('/api/trust/:trustSlug/summary', async (req, res) => {
+  const { trustSlug } = req.params;
+  try {
+    const slug = String(trustSlug || '').toLowerCase();
+    if (!slug) return res.status(400).json({ error: 'Invalid trust slug' });
+
+    // Select all schools that belong to this trust (match by slug of trust_name)
+    const schoolsQuery = `
+      SELECT 
+        s.urn,
+        s.name,
+        s.postcode,
+        s.town,
+        s.local_authority,
+        s.region,
+        s.phase_of_education,
+        s.type_of_establishment,
+        s.gender,
+        s.religious_character,
+        s.english_score,
+        s.math_score,
+        s.science_score,
+        s.overall_rating,
+        s.trust_name,
+        s.is_part_of_trust,
+        o.overall_effectiveness as ofsted_rating,
+        COALESCE(c.number_on_roll, s.total_pupils) AS number_on_roll,
+        c.percentage_fsm_ever6 as fsm_percentage,
+        a.overall_absence_rate
+      FROM uk_schools s
+      LEFT JOIN uk_ofsted_inspections o ON s.urn = o.urn
+      LEFT JOIN uk_census_data c ON s.urn = c.urn
+      LEFT JOIN uk_absence_data a ON s.urn = a.urn
+      WHERE s.trust_name IS NOT NULL
+        AND LOWER(REGEXP_REPLACE(s.trust_name, '[^a-z0-9]+', '-', 'g')) = $1
+    `;
+    
+    const result = await pool.query(schoolsQuery, [slug]);
+    const schools = result.rows;
+
+    if (schools.length === 0) {
+      return res.json({ success: true, trust: null, schools: [], totalSchools: 0 });
+    }
+
+    // Trust display name from data
+    const trustName = schools[0].trust_name;
+
+    // Prepare summary statistics
+    let primaryCount = 0;
+    let secondaryCount = 0;
+    let sixthFormCount = 0;
+    let specialCount = 0;
+    let totalStudents = 0;
+
+    let ofstedCounts = {
+      outstanding: 0,
+      good: 0,
+      requiresImprovement: 0,
+      inadequate: 0,
+      notInspected: 0
+    };
+
+    let englishScores = [];
+    let mathScores = [];
+    let scienceScores = [];
+    let attendanceRates = [];
+    let fsmPercentages = [];
+
+    schools.forEach(school => {
+      const phase = (school.phase_of_education || '').toLowerCase();
+      const type = (school.type_of_establishment || '').toLowerCase();
+
+      const isSpecial = type.includes('special') || phase.includes('special');
+      if (isSpecial) specialCount++;
+
+      if (phase.includes('primary') || phase.includes('infant') || phase.includes('junior') || phase.includes('first')) primaryCount++;
+      if (phase.includes('secondary') || phase.includes('middle') || phase.includes('high') || phase.includes('upper')) secondaryCount++;
+      if (school.has_sixth_form || phase.includes('sixth')) sixthFormCount++;
+
+      if (school.number_on_roll) totalStudents += parseInt(school.number_on_roll) || 0;
+
+      switch(school.ofsted_rating) {
+        case 1: ofstedCounts.outstanding++; break;
+        case 2: ofstedCounts.good++; break;
+        case 3: ofstedCounts.requiresImprovement++; break;
+        case 4: ofstedCounts.inadequate++; break;
+        default: ofstedCounts.notInspected++; break;
+      }
+
+      if (school.english_score) englishScores.push(parseFloat(school.english_score));
+      if (school.math_score) mathScores.push(parseFloat(school.math_score));
+      if (school.science_score) scienceScores.push(parseFloat(school.science_score));
+      if (school.overall_absence_rate) attendanceRates.push(100 - parseFloat(school.overall_absence_rate));
+      if (school.fsm_percentage) fsmPercentages.push(parseFloat(school.fsm_percentage));
+    });
+
+    const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null;
+
+    res.json({
+      success: true,
+      trust: {
+        name: trustName,
+        slug,
+      },
+      totalSchools: schools.length,
+      totalStudents,
+      primaryCount,
+      secondaryCount,
+      sixthFormCount,
+      specialCount,
+      ofstedCounts,
+      avgEnglish: avg(englishScores),
+      avgMaths: avg(mathScores),
+      avgScience: avg(scienceScores),
+      avgAttendance: avg(attendanceRates),
+      avgFSM: avg(fsmPercentages),
+      schools: schools
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la recuperation du resume du trust :', error);
+    res.status(500).json({ 
+      error: "Echec de recuperation du resume du trust",
       message: error.message 
     });
   }

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Academy Trust | MeilleureEcole.fr</title>
+  <meta id="metaDescription" name="description" content="Overview of schools within this academy trust: Ofsted ratings, performance and key stats." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <style>
+    .trust-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; padding:2rem 0; }
+    .trust-title { font-size:2rem; font-weight:700; }
+    .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1rem; }
+    .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:1rem; color:#111827; }
+    .stat-value { font-size:1.5rem; font-weight:700; color:#2563eb; }
+    .school-list { margin:2rem 0; }
+    .school-item { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:1rem; margin-bottom:.75rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+    .school-item:hover { box-shadow:0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .badge { padding: .25rem .5rem; border-radius: 6px; font-weight:600; color:#fff; }
+    .badge.green { background:#10b981; }
+    .badge.blue { background:#2563eb; }
+    .badge.orange { background:#f59e0b; }
+    .badge.red { background:#ef4444; }
+    .badge.gray { background:#6b7280; }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+
+  <section class="trust-header">
+    <div class="container">
+      <h1 class="trust-title" id="trustName">Loading trust…</h1>
+      <div id="trustSubtitle" style="opacity:.9; margin-top:.5rem;">Summary of schools in this academy trust</div>
+    </div>
+  </section>
+
+  <section class="container" style="margin-top:1.5rem;">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalSchools">0</div>
+        <div>Total schools</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalStudents">0</div>
+        <div>Total students</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="primaryCount">0</div>
+        <div>Primary</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="secondaryCount">0</div>
+        <div>Secondary</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="sixthFormCount">0</div>
+        <div>Sixth form</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="specialCount">0</div>
+        <div>Special</div>
+      </div>
+    </div>
+
+    <div class="section-card" style="margin-top:1.5rem;">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 class="section-title">Schools in this trust</h2>
+      </div>
+      <div class="school-list" id="trustSchools"></div>
+    </div>
+  </section>
+
+  <div id="footer" style="margin-top:4rem;"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/trust.js"></script>
+</body>
+</html>
+

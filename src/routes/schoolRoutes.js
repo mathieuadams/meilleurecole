@@ -582,6 +582,10 @@ router.get('/:urn', async (req, res) => {
         type: s.type_of_establishment,
         phase: s.phase_of_education,
         status: s.establishment_status,
+        // Trust / Academy
+        is_part_of_trust: !!s.is_part_of_trust,
+        trust_name: s.trust_name || null,
+        ukprn: s.ukprn || null,
 
         // Contact / map
         telephone: s.telephone || null,
