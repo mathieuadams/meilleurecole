@@ -347,7 +347,17 @@ router.get('/:urn', async (req, res) => {
           e.mail,
           NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
           NULLIF(e.latitude, '')::double precision AS latitude,
-          NULLIF(e.longitude, '')::double precision AS longitude
+          NULLIF(e.longitude, '')::double precision AS longitude,
+          e.students_total,
+          e.lycee_students_total,
+          e.lycee_effectifs_seconde,
+          e.lycee_effectifs_premiere,
+          e.lycee_effectifs_terminale,
+          e.lycee_bac_candidates,
+          e.lycee_bac_success_rate,
+          e.lycee_mentions_rate,
+          e.college_dnb_candidates,
+          e.college_dnb_success_rate
         FROM fr_ecoles e
         WHERE e.identifiant_de_l_etablissement = $1
         LIMIT 1
@@ -359,7 +369,41 @@ router.get('/:urn', async (req, res) => {
         LIMIT 1
       `;
 
-      const frR = await query(frSql, [uai]);
+      let frR;
+      try {
+        frR = await query(frSql, [uai]);
+      } catch (e) {
+        if (e.code === '42703') {
+          // Columns not present yet; retry with a minimal set
+          const fallbackSql = `
+            SELECT 
+              e.identifiant_de_l_etablissement AS uai,
+              e.nom_etablissement AS name,
+              e.nom_commune AS commune,
+              e.code_postal,
+              e.type_etablissement,
+              e.statut_public_prive,
+              e.type_contrat_prive,
+              e.libelle_departement AS departement,
+              e.libelle_academie AS academie,
+              e.libelle_region AS region,
+              e.adresse_1,
+              e.adresse_2,
+              e.adresse_3,
+              e.telephone,
+              e.web,
+              e.mail,
+              NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+              NULLIF(e.latitude, '')::double precision AS latitude,
+              NULLIF(e.longitude, '')::double precision AS longitude
+            FROM fr_ecoles e
+            WHERE e.identifiant_de_l_etablissement = $1
+            LIMIT 1`;
+          frR = await query(fallbackSql, [uai]);
+        } else {
+          throw e;
+        }
+      }
       let stR = { rows: [] };
       try { stR = await query(statsSql, [uai]); } catch (e) { if (e.code !== '42P01') console.warn('FR stats table missing/error:', e.message); }
 
@@ -415,9 +459,9 @@ router.get('/:urn', async (req, res) => {
 
           demographics: {
             total_students: (
-              (row.students_total ? parseInt(row.students_total) : null) ??
-              (row.lycee_students_total ? parseInt(row.lycee_students_total) : null) ??
-              row.nombre_d_eleves || null
+              (row.students_total != null ? parseInt(row.students_total, 10) : null) ??
+              (row.lycee_students_total != null ? parseInt(row.lycee_students_total, 10) : null) ??
+              (row.nombre_d_eleves != null ? parseInt(row.nombre_d_eleves, 10) : null)
             ),
             boys: null,
             girls: null,
