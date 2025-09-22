@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup:fr": "node scripts/setup_french_db.js",
-    "update:fr": "node scripts/update_french_enrollment_and_results.js"
+    "update:fr": "node scripts/update_french_enrollment_and_results.js",
+    "load:fr": "node scripts/load_fr_data.js"
   },
   "keywords": [
     "schools",
