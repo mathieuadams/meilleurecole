@@ -344,7 +344,7 @@
     
     
   </div>
- <div><a href="#" class="write-review-btn" id="writeReviewBtn">Write a Review</a> </div>
+<div><a href="#" class="write-review-btn" id="writeReviewBtn">Écrire un avis</a> </div>
   <div class="category-ratings" id="categoryRatings">
     <div class="category-item">
       <div class="category-header">
@@ -486,7 +486,7 @@
 
     const avgRating = parseFloat(stats.avg_overall_rating) || 0;
     document.getElementById('avgRating').textContent = avgRating.toFixed(1);
-    document.getElementById('reviewsCount').textContent = `${stats.total_reviews || 0} Reviews`;
+    document.getElementById('reviewsCount').textContent = `${stats.total_reviews || 0} avis`;
 
     // Update star display
     const starsContainer = document.getElementById('avgStars');
