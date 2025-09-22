@@ -359,9 +359,16 @@ router.get('/:urn', async (req, res) => {
         LIMIT 1
       `;
 
-      const [frR, stR] = await Promise.all([
+      const frAggSql = `
+        SELECT students_total, lycee_students_total,
+               lycee_bac_candidates, lycee_bac_success_rate, lycee_mentions_rate,
+               college_dnb_candidates, college_dnb_success_rate
+        FROM fr_school_fr_stats WHERE uai = $1
+      `;
+      const [frR, stR, aggR] = await Promise.all([
         query(frSql, [uai]),
-        query(statsSql, [uai])
+        query(statsSql, [uai]),
+        query(frAggSql, [uai])
       ]);
 
       if (!frR.rows.length) {
@@ -371,6 +378,7 @@ router.get('/:urn', async (req, res) => {
       const stats = stR.rows[0] || {};
 
       const avgReview = stats.avg_overall_rating == null ? null : Number(stats.avg_overall_rating);
+      const agg = aggR.rows[0] || {};
       const overallOn10 = avgReview == null ? null : Math.round(avgReview * 20) / 10; // 0-5 -> 0-10
 
       const payload = {
@@ -414,7 +422,7 @@ router.get('/:urn', async (req, res) => {
           },
 
           demographics: {
-            total_students: row.nombre_d_eleves || null,
+            total_students: (agg.students_total ?? agg.lycee_students_total ?? row.nombre_d_eleves) || null,
             boys: null,
             girls: null,
             fsm_percentage: null,
@@ -436,6 +444,14 @@ router.get('/:urn', async (req, res) => {
           rating_percentile: null,
           rating_data_completeness: null,
           la_comparison: null,
+
+          fr_performance: {
+            lycee_bac_candidates: agg.lycee_bac_candidates ?? null,
+            lycee_bac_success_rate: agg.lycee_bac_success_rate ?? null,
+            lycee_mentions_rate: agg.lycee_mentions_rate ?? null,
+            college_dnb_candidates: agg.college_dnb_candidates ?? null,
+            college_dnb_success_rate: agg.college_dnb_success_rate ?? null
+          },
 
           reviews: {
             avg_overall_rating: avgReview,
