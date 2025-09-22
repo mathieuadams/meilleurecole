@@ -4,3 +4,4 @@ scripts/.openai_key
 enriched_*.csv
 *.log
 
+french_school_etudiant_par_class.csv
