@@ -20,6 +20,34 @@ const contactRoutes = require('./src/routes/contactRoutes');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// ---- Ensure French aggregate columns exist on fr_ecoles (one-time, idempotent)
+async function ensureFrenchColumns() {
+  const alters = [
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS students_total INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_students_total INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_seconde INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_premiere INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_terminale INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_candidates INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_success_rate NUMERIC(6,3)",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_mentions_rate NUMERIC(6,3)",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS college_dnb_candidates INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS college_dnb_success_rate NUMERIC(6,3)",
+  ];
+  try {
+    for (const sql of alters) {
+      try { await pool.query(sql); } catch (e) {
+        // Ignore 'relation does not exist' for initial setups, and 'duplicate column' just in case
+        if (e.code === '42P01' /* relation missing */ || e.code === '42701' /* duplicate column */) continue;
+        throw e;
+      }
+    }
+    console.log('fr_ecoles: ensured French aggregate columns are present');
+  } catch (err) {
+    console.warn('Warning: could not ensure French columns on fr_ecoles:', err.message);
+  }
+}
+
 // Render / proxies
 app.set('trust proxy', 1);
 
@@ -58,6 +86,11 @@ app.use('/css', express.static(path.join(PUBLIC_DIR, 'css')));
 app.use('/js', express.static(path.join(PUBLIC_DIR, 'js')));
 app.use('/components', express.static(path.join(PUBLIC_DIR, 'components')));
 app.use('/images', express.static(path.join(PUBLIC_DIR, 'images')));
+
+// Kick off a background check to ensure FR columns exist
+(async () => {
+  await ensureFrenchColumns();
+})();
 
 // ---- Health
 app.get('/health', async (_req, res) => {
