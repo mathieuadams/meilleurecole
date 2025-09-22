@@ -77,12 +77,25 @@ async function ensureColumnsOnEcoles(client) {
   }
 }
 
+function detectDelimiter(file) {
+  try {
+    const head = fs.readFileSync(file, { encoding: 'utf8' }).slice(0, 4096);
+    const semi = (head.match(/;/g) || []).length;
+    const comma = (head.match(/,/g) || []).length;
+    return semi > comma ? ';' : ',';
+  } catch {
+    return ',';
+  }
+}
+
 async function readCsvRows(file) {
   if (!fs.existsSync(file)) return [];
+  const delimiter = detectDelimiter(file);
   const records = [];
   const parser = fs.createReadStream(file, { encoding: 'utf8' })
-    .pipe(parse({ columns: true, bom: true, skip_empty_lines: true }));
+    .pipe(parse({ columns: true, bom: true, skip_empty_lines: true, delimiter }));
   for await (const rec of parser) records.push(rec);
+  console.log(`Parsed ${records.length} rows from ${path.basename(file)} using delimiter '${delimiter}'`);
   return records;
 }
 
@@ -132,6 +145,7 @@ async function loadLyceeClasses(client) {
       [uai, v.lyceeTotal, v.eff2, v.eff1, v.effT, v.girls, v.boys]
     );
   }
+  console.log(`Lycee classes: updated ${Object.keys(byUai).length} UAI with effectifs/lycee totals`);
 }
 
 async function loadLyceeResults(client) {
@@ -152,6 +166,7 @@ async function loadLyceeResults(client) {
       [String(uai).trim(), candidates, success, mentions]
     );
   }
+  console.log(`Lycee results: processed ${rows.length} rows (matched by UAI)`);
 }
 
 async function loadCollegeResults(client) {
@@ -180,6 +195,7 @@ async function loadCollegeResults(client) {
       [uai, candidates, rate]
     );
   }
+  console.log(`College results: processed ${rows.length} rows (matched by name/commune/département)`);
 }
 
 async function loadEnroll2024(client) {
@@ -242,4 +258,3 @@ async function main() {
 if (require.main === module) {
   main();
 }
-
