@@ -28,6 +28,8 @@ async function ensureFrenchColumns() {
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_seconde INTEGER",
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_premiere INTEGER",
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_terminale INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS girls_total INTEGER",
+    "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS boys_total INTEGER",
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_candidates INTEGER",
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_success_rate NUMERIC(6,3)",
     "ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_mentions_rate NUMERIC(6,3)",

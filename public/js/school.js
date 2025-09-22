@@ -474,6 +474,22 @@ function updateDemographics(school) {
   setText('ealPercentage', demo.eal_percentage != null ? fmtPct(demo.eal_percentage) : '-');
   setText('senSupport', demo.sen_support_percentage != null ? fmtPct(demo.sen_support_percentage) : '-');
   setText('senEHCP', demo.sen_ehcp_percentage != null ? fmtPct(demo.sen_ehcp_percentage) : '-');
+
+  // Update gender donut percentages if IDs exist
+  const total = (Number(demo.boys) || 0) + (Number(demo.girls) || 0);
+  if (total > 0) {
+    const femalePct = Math.round((Number(demo.girls) || 0) * 1000 / total) / 10; // 1 decimal
+    const malePct = Math.round((Number(demo.boys) || 0) * 1000 / total) / 10;
+    const circumference = 2 * Math.PI * 25; // matches SVG r=25 in component
+    const femaleArc = (femalePct / 100) * circumference;
+    const femaleOffset = circumference - femaleArc;
+    const circle = document.getElementById('genderCircle');
+    const femLabel = document.getElementById('femalePercentage');
+    const maleLabel = document.getElementById('malePercentage');
+    if (circle) circle.setAttribute('stroke-dashoffset', String(femaleOffset));
+    if (femLabel) femLabel.textContent = `${femalePct}%`;
+    if (maleLabel) maleLabel.textContent = `${malePct}%`;
+  }
 }
 
 function updateSchoolInfo(school) {

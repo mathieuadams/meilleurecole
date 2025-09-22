@@ -463,8 +463,8 @@ router.get('/:urn', async (req, res) => {
               (row.lycee_students_total != null ? parseInt(row.lycee_students_total, 10) : null) ??
               (row.nombre_d_eleves != null ? parseInt(row.nombre_d_eleves, 10) : null)
             ),
-            boys: null,
-            girls: null,
+            boys: (row.boys_total != null ? parseInt(row.boys_total, 10) : null),
+            girls: (row.girls_total != null ? parseInt(row.girls_total, 10) : null),
             fsm_percentage: null,
             eal_percentage: null,
             sen_support_percentage: null,

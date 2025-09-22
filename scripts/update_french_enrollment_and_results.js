@@ -67,6 +67,8 @@ async function ensureColumnsOnEcoles(client) {
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_seconde INTEGER',
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_premiere INTEGER',
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_terminale INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS boys_total INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS girls_total INTEGER',
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_candidates INTEGER',
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_success_rate NUMERIC(6,3)',
     'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_mentions_rate NUMERIC(6,3)',
@@ -103,12 +105,19 @@ async function loadLyceeClasses(client) {
     const eff2 = parseNumber(getCol(r, ['Effectifs 2nde', 'Effectifs a la rentree N 2nde']));
     const eff1 = parseNumber(getCol(r, ["Effectifs 1ere", 'Effectifs a la rentree N 1ere']));
     const effT = parseNumber(getCol(r, ['Effectifs Term', 'Effectifs a la rentree N Term']));
+    // Sum all *filles and *garçons columns as rough totals
+    const girlKeys = Object.keys(r).filter(k => /filles/i.test(k));
+    const boyKeys = Object.keys(r).filter(k => /(gar[çc]ons|garcons)/i.test(k));
+    const girls = girlKeys.map(k => parseNumber(r[k]) || 0).reduce((a,b)=>a+b,0);
+    const boys = boyKeys.map(k => parseNumber(r[k]) || 0).reduce((a,b)=>a+b,0);
     const lyceeTotal = [eff2, eff1, effT].filter((x) => x != null).reduce((a, b) => a + b, 0) || total || null;
-    if (!byUai[uai]) byUai[uai] = { lycee_students_total: null, eff2: null, eff1: null, effT: null };
+    if (!byUai[uai]) byUai[uai] = { lycee_students_total: null, eff2: null, eff1: null, effT: null, boys: null, girls: null };
     if (lyceeTotal != null) byUai[uai].lycee_students_total = lyceeTotal;
     if (eff2 != null) byUai[uai].eff2 = eff2;
     if (eff1 != null) byUai[uai].eff1 = eff1;
     if (effT != null) byUai[uai].effT = effT;
+    if (girls > 0) byUai[uai].girls = girls;
+    if (boys > 0) byUai[uai].boys = boys;
   });
   for (const [uai, v] of Object.entries(byUai)) {
     await client.query(
@@ -116,9 +125,11 @@ async function loadLyceeClasses(client) {
          lycee_students_total = COALESCE($2, lycee_students_total),
          lycee_effectifs_seconde = COALESCE($3, lycee_effectifs_seconde),
          lycee_effectifs_premiere = COALESCE($4, lycee_effectifs_premiere),
-         lycee_effectifs_terminale = COALESCE($5, lycee_effectifs_terminale)
+         lycee_effectifs_terminale = COALESCE($5, lycee_effectifs_terminale),
+         girls_total = COALESCE($6, girls_total),
+         boys_total = COALESCE($7, boys_total)
        WHERE "identifiant_de_l_etablissement" = $1`,
-      [uai, v.lycee_students_total, v.eff2, v.eff1, v.effT]
+      [uai, v.lycee_students_total, v.eff2, v.eff1, v.effT, v.girls, v.boys]
     );
   }
   return byUai;
