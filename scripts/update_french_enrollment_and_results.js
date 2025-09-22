@@ -59,23 +59,23 @@ function getCol(record, candidates) {
   return null;
 }
 
-async function ensureTables(client) {
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS fr_school_fr_stats (
-      uai TEXT PRIMARY KEY REFERENCES fr_ecoles("identifiant_de_l_etablissement") ON DELETE CASCADE,
-      students_total INTEGER,
-      lycee_students_total INTEGER,
-      lycee_effectifs_seconde INTEGER,
-      lycee_effectifs_premiere INTEGER,
-      lycee_effectifs_terminale INTEGER,
-      lycee_bac_candidates INTEGER,
-      lycee_bac_success_rate NUMERIC(6,3),
-      lycee_mentions_rate NUMERIC(6,3),
-      college_dnb_candidates INTEGER,
-      college_dnb_success_rate NUMERIC(6,3),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `);
+async function ensureColumnsOnEcoles(client) {
+  // Add all required aggregate columns directly on fr_ecoles
+  const alters = [
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS students_total INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_students_total INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_seconde INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_premiere INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_effectifs_terminale INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_candidates INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_bac_success_rate NUMERIC(6,3)',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS lycee_mentions_rate NUMERIC(6,3)',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS college_dnb_candidates INTEGER',
+    'ALTER TABLE fr_ecoles ADD COLUMN IF NOT EXISTS college_dnb_success_rate NUMERIC(6,3)'
+  ];
+  for (const sql of alters) {
+    try { await client.query(sql); } catch (e) { if (e.code !== '42P07') throw e; }
+  }
 }
 
 async function readCsvRows(file) {
@@ -112,14 +112,12 @@ async function loadLyceeClasses(client) {
   });
   for (const [uai, v] of Object.entries(byUai)) {
     await client.query(
-      `INSERT INTO fr_school_fr_stats (uai, lycee_students_total, lycee_effectifs_seconde, lycee_effectifs_premiere, lycee_effectifs_terminale, updated_at)
-       VALUES ($1,$2,$3,$4,$5,NOW())
-       ON CONFLICT (uai) DO UPDATE SET
-         lycee_students_total = COALESCE(EXCLUDED.lycee_students_total, fr_school_fr_stats.lycee_students_total),
-         lycee_effectifs_seconde = COALESCE(EXCLUDED.lycee_effectifs_seconde, fr_school_fr_stats.lycee_effectifs_seconde),
-         lycee_effectifs_premiere = COALESCE(EXCLUDED.lycee_effectifs_premiere, fr_school_fr_stats.lycee_effectifs_premiere),
-         lycee_effectifs_terminale = COALESCE(EXCLUDED.lycee_effectifs_terminale, fr_school_fr_stats.lycee_effectifs_terminale),
-         updated_at = NOW()`,
+      `UPDATE fr_ecoles SET 
+         lycee_students_total = COALESCE($2, lycee_students_total),
+         lycee_effectifs_seconde = COALESCE($3, lycee_effectifs_seconde),
+         lycee_effectifs_premiere = COALESCE($4, lycee_effectifs_premiere),
+         lycee_effectifs_terminale = COALESCE($5, lycee_effectifs_terminale)
+       WHERE "identifiant_de_l_etablissement" = $1`,
       [uai, v.lycee_students_total, v.eff2, v.eff1, v.effT]
     );
   }
@@ -136,13 +134,11 @@ async function loadLyceeResults(client) {
     const success = parseNumber(getCol(r, ['Taux de reussite bruts total', 'Taux de réussite bruts total', 'Taux reussite']))
     const mentions = parseNumber(getCol(r, ['Taux de mentions bruts', 'Taux mentions']));
     await client.query(
-      `INSERT INTO fr_school_fr_stats (uai, lycee_bac_candidates, lycee_bac_success_rate, lycee_mentions_rate, updated_at)
-       VALUES ($1,$2,$3,$4,NOW())
-       ON CONFLICT (uai) DO UPDATE SET
-         lycee_bac_candidates = COALESCE(EXCLUDED.lycee_bac_candidates, fr_school_fr_stats.lycee_bac_candidates),
-         lycee_bac_success_rate = COALESCE(EXCLUDED.lycee_bac_success_rate, fr_school_fr_stats.lycee_bac_success_rate),
-         lycee_mentions_rate = COALESCE(EXCLUDED.lycee_mentions_rate, fr_school_fr_stats.lycee_mentions_rate),
-         updated_at = NOW()`,
+      `UPDATE fr_ecoles SET 
+         lycee_bac_candidates = COALESCE($2, lycee_bac_candidates),
+         lycee_bac_success_rate = COALESCE($3, lycee_bac_success_rate),
+         lycee_mentions_rate = COALESCE($4, lycee_mentions_rate)
+       WHERE "identifiant_de_l_etablissement" = $1`,
       [uai, candidates, success, mentions]
     );
   }
@@ -183,12 +179,10 @@ async function loadCollegeResults(client) {
     const candidates = candG + candP || null;
     const rate = rateG != null ? rateG : rateP;
     await client.query(
-      `INSERT INTO fr_school_fr_stats (uai, college_dnb_candidates, college_dnb_success_rate, updated_at)
-       VALUES ($1,$2,$3,NOW())
-       ON CONFLICT (uai) DO UPDATE SET
-         college_dnb_candidates = COALESCE(EXCLUDED.college_dnb_candidates, fr_school_fr_stats.college_dnb_candidates),
-         college_dnb_success_rate = COALESCE(EXCLUDED.college_dnb_success_rate, fr_school_fr_stats.college_dnb_success_rate),
-         updated_at = NOW()`,
+      `UPDATE fr_ecoles SET 
+         college_dnb_candidates = COALESCE($2, college_dnb_candidates),
+         college_dnb_success_rate = COALESCE($3, college_dnb_success_rate)
+       WHERE "identifiant_de_l_etablissement" = $1`,
       [uai, candidates, rate]
     );
   }
@@ -225,7 +219,7 @@ async function loadEnroll2024(client) {
 async function main() {
   const client = await pool.connect();
   try {
-    await ensureTables(client);
+    await ensureColumnsOnEcoles(client);
     console.log('Loading lycee class enrollment…');
     await loadLyceeClasses(client);
     console.log('Loading lycee results…');
@@ -247,4 +241,3 @@ async function main() {
 if (require.main === module) {
   main();
 }
-

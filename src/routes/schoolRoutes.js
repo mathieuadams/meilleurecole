@@ -359,17 +359,9 @@ router.get('/:urn', async (req, res) => {
         LIMIT 1
       `;
 
-      const frAggSql = `
-        SELECT students_total, lycee_students_total,
-               lycee_bac_candidates, lycee_bac_success_rate, lycee_mentions_rate,
-               college_dnb_candidates, college_dnb_success_rate
-        FROM fr_school_fr_stats WHERE uai = $1
-      `;
-      const [frR, stR, aggR] = await Promise.all([
-        query(frSql, [uai]),
-        query(statsSql, [uai]),
-        query(frAggSql, [uai])
-      ]);
+      const frR = await query(frSql, [uai]);
+      let stR = { rows: [] };
+      try { stR = await query(statsSql, [uai]); } catch (e) { if (e.code !== '42P01') console.warn('FR stats table missing/error:', e.message); }
 
       if (!frR.rows.length) {
         return res.status(404).json({ error: 'School not found' });
@@ -378,7 +370,7 @@ router.get('/:urn', async (req, res) => {
       const stats = stR.rows[0] || {};
 
       const avgReview = stats.avg_overall_rating == null ? null : Number(stats.avg_overall_rating);
-      const agg = aggR.rows[0] || {};
+      // Pull aggregates directly from fr_ecoles row when available
       const overallOn10 = avgReview == null ? null : Math.round(avgReview * 20) / 10; // 0-5 -> 0-10
 
       const payload = {
@@ -422,7 +414,11 @@ router.get('/:urn', async (req, res) => {
           },
 
           demographics: {
-            total_students: (agg.students_total ?? agg.lycee_students_total ?? row.nombre_d_eleves) || null,
+            total_students: (
+              (row.students_total ? parseInt(row.students_total) : null) ??
+              (row.lycee_students_total ? parseInt(row.lycee_students_total) : null) ??
+              row.nombre_d_eleves || null
+            ),
             boys: null,
             girls: null,
             fsm_percentage: null,
@@ -446,11 +442,11 @@ router.get('/:urn', async (req, res) => {
           la_comparison: null,
 
           fr_performance: {
-            lycee_bac_candidates: agg.lycee_bac_candidates ?? null,
-            lycee_bac_success_rate: agg.lycee_bac_success_rate ?? null,
-            lycee_mentions_rate: agg.lycee_mentions_rate ?? null,
-            college_dnb_candidates: agg.college_dnb_candidates ?? null,
-            college_dnb_success_rate: agg.college_dnb_success_rate ?? null
+            lycee_bac_candidates: row.lycee_bac_candidates ? parseInt(row.lycee_bac_candidates) : null,
+            lycee_bac_success_rate: row.lycee_bac_success_rate ? Number(row.lycee_bac_success_rate) : null,
+            lycee_mentions_rate: row.lycee_mentions_rate ? Number(row.lycee_mentions_rate) : null,
+            college_dnb_candidates: row.college_dnb_candidates ? parseInt(row.college_dnb_candidates) : null,
+            college_dnb_success_rate: row.college_dnb_success_rate ? Number(row.college_dnb_success_rate) : null
           },
 
           reviews: {
