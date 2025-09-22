@@ -27,6 +27,103 @@ router.get('/schools/:urn/reviews', async (req, res) => {
   else if (sort === 'rating_low') orderBy = 'r.overall_rating ASC, r.created_at DESC';
 
   try {
+    const isNumeric = /^\d+$/.test(String(urn));
+    if (!isNumeric) {
+      // --- French UAI branch ---
+      // 1) Stats
+      let stats = null;
+      try {
+        const srow = await pool.query('SELECT * FROM fr_school_review_stats WHERE uai = $1', [urn]);
+        const db = srow.rows[0] || null;
+        if (db) {
+          const all = await pool.query(
+            `SELECT overall_rating, learning_rating, teaching_rating, safety_rating,
+                    social_emotional_rating, special_education_rating, family_engagement_rating
+             FROM fr_school_reviews WHERE uai = $1 AND COALESCE(is_published, true) = true`,
+            [urn]
+          );
+          const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+          all.rows.forEach(r => { if (r.overall_rating) distribution[r.overall_rating]++; });
+          stats = {
+            urn,
+            total_reviews: db.total_reviews,
+            avg_overall_rating: db.avg_overall_rating,
+            recommendation_percentage: db.recommendation_percentage,
+            distribution,
+            categories: {
+              family: { average: db.avg_family_engagement_rating, count: all.rows.filter(r=>r.family_engagement_rating!=null).length },
+              learning: { average: db.avg_learning_rating, count: all.rows.filter(r=>r.learning_rating!=null).length },
+              teaching: { average: db.avg_teaching_rating, count: all.rows.filter(r=>r.teaching_rating!=null).length },
+              safety: { average: db.avg_safety_rating, count: all.rows.filter(r=>r.safety_rating!=null).length },
+              social: { average: db.avg_social_emotional_rating, count: all.rows.filter(r=>r.social_emotional_rating!=null).length },
+              special: { average: db.avg_special_education_rating, count: all.rows.filter(r=>r.special_education_rating!=null).length }
+            }
+          };
+        }
+      } catch {}
+
+      if (!stats) {
+        const dQ = await pool.query(
+          `SELECT COUNT(*)::int AS total_reviews,
+                  ROUND(AVG(overall_rating)::numeric,1) AS avg_overall_rating,
+                  SUM(CASE WHEN overall_rating=5 THEN 1 ELSE 0 END)::int AS star5,
+                  SUM(CASE WHEN overall_rating=4 THEN 1 ELSE 0 END)::int AS star4,
+                  SUM(CASE WHEN overall_rating=3 THEN 1 ELSE 0 END)::int AS star3,
+                  SUM(CASE WHEN overall_rating=2 THEN 1 ELSE 0 END)::int AS star2,
+                  SUM(CASE WHEN overall_rating=1 THEN 1 ELSE 0 END)::int AS star1,
+                  ROUND(AVG(NULLIF(family_engagement_rating,0))::numeric,1) AS family_avg,
+                  COUNT(NULLIF(family_engagement_rating,0))::int AS family_count,
+                  ROUND(AVG(NULLIF(learning_rating,0))::numeric,1) AS learning_avg,
+                  COUNT(NULLIF(learning_rating,0))::int AS learning_count,
+                  ROUND(AVG(NULLIF(teaching_rating,0))::numeric,1) AS teaching_avg,
+                  COUNT(NULLIF(teaching_rating,0))::int AS teaching_count,
+                  ROUND(AVG(NULLIF(safety_rating,0))::numeric,1) AS safety_avg,
+                  COUNT(NULLIF(safety_rating,0))::int AS safety_count,
+                  ROUND(AVG(NULLIF(social_emotional_rating,0))::numeric,1) AS social_avg,
+                  COUNT(NULLIF(social_emotional_rating,0))::int AS social_count,
+                  ROUND(AVG(NULLIF(special_education_rating,0))::numeric,1) AS special_avg,
+                  COUNT(NULLIF(special_education_rating,0))::int AS special_count,
+                  ROUND(100.0 * AVG(CASE WHEN would_recommend THEN 1 ELSE 0 END)::numeric, 0) AS recommendation_percentage
+           FROM fr_school_reviews WHERE uai = $1 AND COALESCE(is_published, true) = true`,
+          [urn]
+        );
+        const d = dQ.rows[0] || {};
+        stats = {
+          urn,
+          total_reviews: d.total_reviews || 0,
+          avg_overall_rating: d.avg_overall_rating ?? null,
+          recommendation_percentage: d.recommendation_percentage ?? 0,
+          distribution: { 5: d.star5||0, 4: d.star4||0, 3: d.star3||0, 2: d.star2||0, 1: d.star1||0 },
+          categories: {
+            family: { average: d.family_avg, count: d.family_count },
+            learning: { average: d.learning_avg, count: d.learning_count },
+            teaching: { average: d.teaching_avg, count: d.teaching_count },
+            safety: { average: d.safety_avg, count: d.safety_count },
+            social: { average: d.social_avg, count: d.social_count },
+            special: { average: d.special_avg, count: d.special_count }
+          }
+        };
+      }
+
+      const countQ = await pool.query(`SELECT COUNT(*)::int AS total FROM fr_school_reviews WHERE uai = $1 AND COALESCE(is_published, true) = true`, [urn]);
+      const total = countQ.rows[0]?.total ?? 0;
+      const totalPages = Math.max(1, Math.ceil(total / limit));
+
+      const reviewsQ = await pool.query(
+        `SELECT r.*, e.nom_etablissement AS school_name, e.nom_commune AS town,
+                TO_CHAR(r.created_at, 'DD Mon YYYY') AS formatted_date
+         FROM fr_school_reviews r
+         JOIN fr_ecoles e ON r.uai = e."identifiant_de_l_etablissement"
+         WHERE r.uai = $1 AND COALESCE(r.is_published, true) = true
+         ORDER BY ${orderBy}
+         LIMIT $2 OFFSET $3`,
+        [urn, limit, offset]
+      );
+
+      return res.json({ stats, reviews: reviewsQ.rows, pagination: { page, limit, total, totalPages } });
+    }
+
+    // --- UK numeric branch ---
     // 1) Get precomputed stats if available
     const statsRow = await pool.query(
       'SELECT * FROM uk_school_review_stats WHERE urn = $1',
@@ -210,6 +307,7 @@ router.post('/schools/:urn/reviews', async (req, res) => {
   } = req.body || {};
 
   try {
+    const isNumeric = /^\d+$/.test(String(urn));
     // required fields
     if (
       overall_rating == null ||
@@ -226,34 +324,34 @@ router.post('/schools/:urn/reviews', async (req, res) => {
 
     // rate limit: 1 per IP per school per 24h
     const rl = await pool.query(
-      `SELECT COUNT(*)::int AS cnt
-       FROM uk_school_reviews
-       WHERE urn = $1 AND reviewer_ip = $2
-         AND created_at > NOW() - INTERVAL '24 hours'`,
+      isNumeric
+        ? `SELECT COUNT(*)::int AS cnt FROM uk_school_reviews WHERE urn = $1 AND reviewer_ip = $2 AND created_at > NOW() - INTERVAL '24 hours'`
+        : `SELECT COUNT(*)::int AS cnt FROM fr_school_reviews WHERE uai = $1 AND reviewer_ip = $2 AND created_at > NOW() - INTERVAL '24 hours'`,
       [urn, ip]
     );
     if ((rl.rows[0]?.cnt || 0) > 0) {
       return res.status(429).json({ error: 'You can only submit one review per school per day' });
     }
 
-    const insert = await pool.query(
-      `
-      INSERT INTO uk_school_reviews (
-        urn, overall_rating, learning_rating, teaching_rating,
-        social_emotional_rating, special_education_rating, safety_rating,
-        family_engagement_rating, would_recommend, review_text, review_title,
-        reviewer_type, reviewer_name, reviewer_ip, is_published
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, true)
-      RETURNING *
-      `,
-      [
-        urn, overall_rating, learning_rating, teaching_rating,
-        social_emotional_rating, special_education_rating, safety_rating,
-        family_engagement_rating, would_recommend, review_text, review_title,
-        reviewer_type, reviewer_name, ip
-      ]
-    );
+    const insert = isNumeric
+      ? await pool.query(
+          `INSERT INTO uk_school_reviews (
+            urn, overall_rating, learning_rating, teaching_rating,
+            social_emotional_rating, special_education_rating, safety_rating,
+            family_engagement_rating, would_recommend, review_text, review_title,
+            reviewer_type, reviewer_name, reviewer_ip, is_published
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, true) RETURNING *`,
+          [urn, overall_rating, learning_rating, teaching_rating, social_emotional_rating, special_education_rating, safety_rating, family_engagement_rating, would_recommend, review_text, review_title, reviewer_type, reviewer_name, ip]
+        )
+      : await pool.query(
+          `INSERT INTO fr_school_reviews (
+            uai, overall_rating, learning_rating, teaching_rating,
+            social_emotional_rating, special_education_rating, safety_rating,
+            family_engagement_rating, would_recommend, review_text, review_title,
+            reviewer_type, reviewer_name, reviewer_ip, is_published
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, true) RETURNING *`,
+          [urn, overall_rating, learning_rating, teaching_rating, social_emotional_rating, special_education_rating, safety_rating, family_engagement_rating, would_recommend, review_text, review_title, reviewer_type, reviewer_name, ip]
+        );
 
     res.status(201).json({ success: true, review: insert.rows[0] });
   } catch (err) {
@@ -268,8 +366,13 @@ router.post('/reviews/:reviewId/helpful', async (req, res) => {
   const ip = clientIP(req);
 
   try {
+    // Determine if review lives in FR or UK table
+    const inFr = (await pool.query('SELECT 1 FROM fr_school_reviews WHERE id = $1', [reviewId])).rowCount > 0;
+    const helpfulTable = inFr ? 'fr_review_helpful_votes' : 'uk_review_helpful_votes';
+    const reviewTable = inFr ? 'fr_school_reviews' : 'uk_school_reviews';
+
     const already = await pool.query(
-      `SELECT 1 FROM uk_review_helpful_votes WHERE review_id = $1 AND voter_ip = $2`,
+      `SELECT 1 FROM ${helpfulTable} WHERE review_id = $1 AND voter_ip = $2`,
       [reviewId, ip]
     );
     if (already.rows.length) {
@@ -278,11 +381,11 @@ router.post('/reviews/:reviewId/helpful', async (req, res) => {
 
     await pool.query('BEGIN');
     await pool.query(
-      `INSERT INTO uk_review_helpful_votes (review_id, voter_ip) VALUES ($1, $2)`,
+      `INSERT INTO ${helpfulTable} (review_id, voter_ip) VALUES ($1, $2)`,
       [reviewId, ip]
     );
     const upd = await pool.query(
-      `UPDATE uk_school_reviews
+      `UPDATE ${reviewTable}
        SET helpful_count = COALESCE(helpful_count,0) + 1
        WHERE id = $1
        RETURNING id, helpful_count`,
@@ -308,14 +411,18 @@ router.post('/reviews/:reviewId/report', async (req, res) => {
   if (!reason) return res.status(400).json({ error: 'Report reason is required' });
 
   try {
+    const inFr = (await pool.query('SELECT 1 FROM fr_school_reviews WHERE id = $1', [reviewId])).rowCount > 0;
+    const reportsTable = inFr ? 'fr_review_reports' : 'uk_review_reports';
+    const reviewTable = inFr ? 'fr_school_reviews' : 'uk_school_reviews';
+
     await pool.query(
-      `INSERT INTO uk_review_reports (review_id, report_reason, report_details, reporter_ip)
+      `INSERT INTO ${reportsTable} (review_id, report_reason, report_details, reporter_ip)
        VALUES ($1, $2, $3, $4)`,
       [reviewId, reason, details || null, ip]
     );
 
     const upd = await pool.query(
-      `UPDATE uk_school_reviews
+      `UPDATE ${reviewTable}
        SET report_count = COALESCE(report_count,0) + 1
        WHERE id = $1
        RETURNING id, report_count`,

@@ -1,8 +1,8 @@
 <!-- school-rating.html -->
 <div class="section-card">
   <div class="section-header">
-    <h2 class="section-title">School Rating</h2>
-    <span class="info-icon" onclick="toggleRatingInfo()" title="How we calculate ratings">
+    <h2 class="section-title">Note de l'établissement</h2>
+    <span class="info-icon" onclick="toggleRatingInfo()" title="Comment nous calculons la note">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
       </svg>
@@ -18,21 +18,21 @@
     </div>
     
     <div class="rating-summary">
-      <h3 class="rating-title">MeilleureEcole.fr Rating</h3>
+      <h3 class="rating-title">Note MeilleureEcole.fr</h3>
       <p class="rating-performance" id="ratingPerformance">
-        This school is performing <span id="performanceLevel">-</span> compared to other schools in 
-        <span id="localAuthority">-</span> with the same grade levels.
+        Cet établissement se situe <span id="performanceLevel">-</span> par rapport aux autres établissements de 
+        <span id="localAuthority">-</span> au même niveau.
       </p>
       <div class="percentile-display" id="percentileDisplay" style="display: none;">
         <span class="percentile-badge" id="percentileBadge">Top --%</span>
-        <span class="percentile-text">in local authority</span>
+        <span class="percentile-text">dans le département</span>
       </div>
     </div>
   </div>
 
   <!-- Rating Factors -->
   <div class="rating-factors" id="ratingFactors">
-    <h3 class="factors-title">Rating Factors</h3>
+    <h3 class="factors-title">Facteurs de la note</h3>
     
     <!-- Ofsted Factor (hidden for Wales/Scotland) -->
     <div class="factor-item" id="ofstedFactor" style="display: none;">
@@ -43,8 +43,8 @@
           </svg>
         </div>
         <div class="factor-info">
-          <div class="factor-name">Ofsted Inspection</div>
-          <div class="factor-weight">40% weight</div>
+          <div class="factor-name">Inspection</div>
+          <div class="factor-weight">Poids 40%</div>
         </div>
         <div class="factor-score">
           <span id="ofstedScore">-</span>/10
@@ -59,7 +59,7 @@
         </button>
       </div>
       <div class="factor-breakdown" id="ofstedBreakdown" style="display: none;">
-        <p class="breakdown-text">Latest inspection rating contributes to overall score</p>
+        <p class="breakdown-text">La dernière inspection contribue à la note globale</p>
       </div>
     </div>
 
@@ -72,8 +72,8 @@
           </svg>
         </div>
         <div class="factor-info">
-          <div class="factor-name">Academic Performance</div>
-          <div class="factor-weight" id="academicWeight">40% weight</div>
+          <div class="factor-name">Résultats académiques</div>
+          <div class="factor-weight" id="academicWeight">Poids 40%</div>
         </div>
         <div class="factor-score">
           <span id="academicScore">-</span>/10
@@ -90,7 +90,7 @@
       <div class="factor-breakdown" id="academicBreakdown" style="display: none;">
         <div class="subject-scores">
           <div class="subject-item" id="englishItem" style="display: none;">
-            <span class="subject-name">English</span>
+            <span class="subject-name">Anglais</span>
             <div class="comparison-bar">
               <div class="bar-track">
                 <div class="bar-fill school" id="englishSchoolBar"></div>
@@ -100,7 +100,7 @@
             <span class="subject-value" id="englishValue">-</span>
           </div>
           <div class="subject-item" id="mathItem" style="display: none;">
-            <span class="subject-name">Math</span>
+            <span class="subject-name">Mathématiques</span>
             <div class="comparison-bar">
               <div class="bar-track">
                 <div class="bar-fill school" id="mathSchoolBar"></div>
@@ -110,7 +110,7 @@
             <span class="subject-value" id="mathValue">-</span>
           </div>
           <div class="subject-item" id="scienceItem" style="display: none;">
-            <span class="subject-name">Science</span>
+            <span class="subject-name">Sciences</span>
             <div class="comparison-bar">
               <div class="bar-track">
                 <div class="bar-fill school" id="scienceSchoolBar"></div>
@@ -133,8 +133,8 @@
           </svg>
         </div>
         <div class="factor-info">
-          <div class="factor-name">Attendance</div>
-          <div class="factor-weight" id="attendanceWeight">20% weight</div>
+          <div class="factor-name">Assiduité</div>
+          <div class="factor-weight" id="attendanceWeight">Poids 20%</div>
         </div>
         <div class="factor-score">
           <span id="attendanceScore">-</span>/10
@@ -149,7 +149,7 @@
         </button>
       </div>
       <div class="factor-breakdown" id="attendanceBreakdown" style="display: none;">
-        <p class="breakdown-text">School attendance rate compared to local authority average</p>
+        <p class="breakdown-text">Taux d'assiduité comparé à la moyenne départementale</p>
       </div>
     </div>
 
@@ -158,20 +158,20 @@
       <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
       </svg>
-      <span id="dataNoticeText">Rating based on partial data</span>
+      <span id="dataNoticeText">Note calculée sur données partielles</span>
     </div>
   </div>
 
   <!-- Rating Methodology (hidden by default) -->
   <div class="rating-methodology" id="ratingMethodology" style="display: none;">
-    <h4>How We Calculate Ratings</h4>
-    <p>Our rating system evaluates schools on a 1-10 scale based on available data:</p>
+    <h4>Comment nous calculons la note</h4>
+    <p>Notre système évalue les établissements sur 10 selon les données disponibles :</p>
     <ul id="methodologyList">
-      <li><strong>Ofsted Inspection (40%):</strong> Latest official inspection rating</li>
-      <li><strong>Academic Performance (40%):</strong> Test scores compared to local authority average</li>
-      <li><strong>Attendance (20%):</strong> Student attendance rates compared to local average</li>
+      <li><strong>Inspection (40%) :</strong> Dernière note officielle d'inspection</li>
+      <li><strong>Résultats académiques (40%) :</strong> Scores comparés à la moyenne départementale</li>
+      <li><strong>Assiduité (20%) :</strong> Taux d'assiduité comparé à la moyenne</li>
     </ul>
-    <p class="methodology-note" id="methodologyNote">Schools need at least 40% of data available to receive a rating. Ratings are updated monthly.</p>
+    <p class="methodology-note" id="methodologyNote">Un minimum de 40% de données est requis pour attribuer une note. Les notes sont mises à jour mensuellement.</p>
   </div>
 </div>
 

@@ -1,4 +1,4 @@
-<!-- School Reviews Component -->
+﻿<!-- School Reviews Component -->
 <style>
   .reviews-section {
     background: white;
@@ -294,46 +294,46 @@
       <div class="rating-box">
         <div class="rating-number" id="avgRating">0.0</div>
         <div class="rating-stars" id="avgStars">
-          <span class="rating-star">☆</span>
-          <span class="rating-star">☆</span>
-          <span class="rating-star">☆</span>
-          <span class="rating-star">☆</span>
-          <span class="rating-star">☆</span>
+          <span class="rating-star">â˜†</span>
+          <span class="rating-star">â˜†</span>
+          <span class="rating-star">â˜†</span>
+          <span class="rating-star">â˜†</span>
+          <span class="rating-star">â˜†</span>
         </div>
-        <div class="reviews-count" id="reviewsCount">0 Reviews</div>
+        <div class="reviews-count" id="reviewsCount">0 avis</div>
       </div>
       
       <div class="rating-breakdown">
         <div class="rating-row">
-          <span class="rating-label">5 stars</span>
+          <span class="rating-label">5 étoiles</span>
           <div class="rating-bar">
             <div class="rating-fill" id="star5Bar" style="width: 0%"></div>
           </div>
           <span class="rating-count" id="star5Count">0</span>
         </div>
         <div class="rating-row">
-          <span class="rating-label">4 stars</span>
+          <span class="rating-label">4 étoiles</span>
           <div class="rating-bar">
             <div class="rating-fill" id="star4Bar" style="width: 0%"></div>
           </div>
           <span class="rating-count" id="star4Count">0</span>
         </div>
         <div class="rating-row">
-          <span class="rating-label">3 stars</span>
+          <span class="rating-label">3 étoiles</span>
           <div class="rating-bar">
             <div class="rating-fill" id="star3Bar" style="width: 0%"></div>
           </div>
           <span class="rating-count" id="star3Count">0</span>
         </div>
         <div class="rating-row">
-          <span class="rating-label">2 stars</span>
+          <span class="rating-label">2 étoiles</span>
           <div class="rating-bar">
             <div class="rating-fill" id="star2Bar" style="width: 0%"></div>
           </div>
           <span class="rating-count" id="star2Count">0</span>
         </div>
         <div class="rating-row">
-          <span class="rating-label">1 star</span>
+          <span class="rating-label">1 étoile</span>
           <div class="rating-bar">
             <div class="rating-fill" id="star1Bar" style="width: 0%"></div>
           </div>
@@ -378,7 +378,7 @@
         <span class="category-score" id="socialScore">-</span>
         <div class="category-dots" id="socialDots"></div>
       </div>
-      <div class="category-name">Social Emotional Support</div>
+      <div class="category-name">Accompagnement socio-émotionnel</div>
       <div class="category-count" id="socialCount">(0)</div>
     </div>
     
@@ -387,17 +387,17 @@
         <span class="category-score" id="specialScore">-</span>
         <div class="category-dots" id="specialDots"></div>
       </div>
-      <div class="category-name">Special Education</div>
+      <div class="category-name">Éducation spécialisée</div>
       <div class="category-count" id="specialCount">(0)</div>
     </div>
     
     <div class="category-item">
       <div class="category-header">
-        <span class="category-score" id="teachingScore">-</span>
-        <div class="category-dots" id="teachingDots"></div>
+        <span class="category-score" id="EnseignementScore">-</span>
+        <div class="category-dots" id="EnseignementDots"></div>
       </div>
-      <div class="category-name">Teaching</div>
-      <div class="category-count" id="teachingCount">(0)</div>
+      <div class="category-name">Enseignement</div>
+      <div class="category-count" id="EnseignementCount">(0)</div>
     </div>
   </div>
 
@@ -405,7 +405,7 @@
     <!-- Reviews will be loaded here -->
   </div>
 
-  <button class="load-more-btn" id="loadMoreReviews" style="display: none;">See All Reviews</button>
+  <button class="load-more-btn" id="loadMoreReviews" style="display: none;">Voir tous les avis</button>
 </div>
 
 <script>
@@ -494,7 +494,7 @@
     for (let i = 1; i <= 5; i++) {
       const star = document.createElement('span');
       star.className = 'rating-star';
-      star.textContent = i <= Math.round(avgRating) ? '★' : '☆';
+      star.textContent = i <= Math.round(avgRating) ? 'â˜…' : 'â˜†';
       starsContainer.appendChild(star);
     }
 
@@ -518,7 +518,7 @@
       updateCategoryRating('safety', stats.categories.safety);
       updateCategoryRating('social', stats.categories.social);
       updateCategoryRating('special', stats.categories.special);
-      updateCategoryRating('teaching', stats.categories.teaching);
+      updateCategoryRating('Enseignement', stats.categories.Enseignement);
     }
   }
 
@@ -596,7 +596,7 @@
 
       <div class="review-stars">
         ${Array(5).fill(0).map((_, i) => 
-          `<span class="review-star ${i >= review.overall_rating ? 'empty' : ''}">★</span>`
+          `<span class="review-star ${i >= review.overall_rating ? 'empty' : ''}">â˜…</span>`
         ).join('')}
       </div>
 
@@ -608,7 +608,7 @@
 
       ${review.would_recommend !== null && review.would_recommend !== undefined ? `
         <div class="review-recommendation ${review.would_recommend ? '' : 'not-recommended'}">
-          ${review.would_recommend ? '✓ Would recommend this school' : '✗ Would not recommend this school'}
+          ${review.would_recommend ? 'âœ“ Would recommend this school' : 'âœ— Would not recommend this school'}
         </div>
       ` : ''}
 

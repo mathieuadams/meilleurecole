@@ -500,8 +500,13 @@ function updateSchoolInfo(school) {
   const g = (c.gender && String(c.gender).trim()) ? c.gender : 'Mixed';
   setText('infoGender', g);
   setText('infoAgeRange', c.age_range || `${school.age_range_lower ?? '?'} - ${school.age_range_upper ?? '?'}`);
-  setText('infoReligious', c.religious_character || 'None');
-  setText('infoAdmissions', c.admissions_policy || 'Not specified');
+  setText('infoReligious', c.religious_character || (String(school.country||'').toLowerCase()==='france' ? 'Aucun' : 'None'));
+  // For France, show public/privé / type de contrat in the admissions field
+  const isFR = (school.country || '').toLowerCase() === 'france';
+  const admissions = isFR
+    ? [school.phase, school.status].filter(Boolean).join(' · ')
+    : (c.admissions_policy || 'Not specified');
+  setText('infoAdmissions', admissions || (isFR ? '-' : 'Not specified'));
   setText('infoLA', school.address?.local_authority || '-');
   setText('infoURN', school.urn || '-');
 }
@@ -543,7 +548,9 @@ function updateContactInfo(school) {
   // Matches school-contact.html element IDs (nh-*)
   const addr = school.address || {};
   setText('nh-address', fullAddress(addr));
-  setText('nh-la', addr.local_authority ? `Local Authority: ${addr.local_authority}` : '');
+  const isFR = (school.country || '').toLowerCase() === 'france';
+  const laLabel = isFR ? 'Département' : 'Local Authority';
+  setText('nh-la', addr.local_authority ? `${laLabel}: ${addr.local_authority}` : '');
 
   // Leader
   const leader = [school.headteacher_name, school.headteacher_job_title].filter(Boolean).join(' — ');
