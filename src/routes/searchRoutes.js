@@ -425,9 +425,9 @@ router.get("/", async (req, res) => {
         e.adresse_1,
         e.adresse_2,
         e.adresse_3,
-        NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
-        NULLIF(e.latitude, '')::double precision AS latitude,
-        NULLIF(e.longitude, '')::double precision AS longitude,
+        e.nombre_d_eleves AS nombre_d_eleves,
+        e.latitude AS latitude,
+        e.longitude AS longitude,
         stats.avg_overall_rating,
         stats.total_reviews,
         stats.recommendation_percentage,
@@ -437,7 +437,7 @@ router.get("/", async (req, res) => {
       ${whereSql}
       ORDER BY
         COALESCE(stats.avg_overall_rating, 0) DESC,
-        COALESCE(NULLIF(e.nombre_d_eleves, '')::int, 0) DESC,
+        COALESCE(e.nombre_d_eleves, 0) DESC,
         e.nom_etablissement ASC
       LIMIT $${params.length - 1}
       OFFSET $${params.length}
@@ -487,9 +487,9 @@ router.get("/nearby", async (req, res) => {
           e.type_etablissement,
           e.statut_public_prive,
           NULL::text AS type_contrat_prive,
-          NULLIF(e.latitude, '')::double precision AS latitude,
-          NULLIF(e.longitude, '')::double precision AS longitude,
-          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          e.latitude AS latitude,
+          e.longitude AS longitude,
+          e.nombre_d_eleves AS nombre_d_eleves,
           stats.avg_overall_rating,
           stats.total_reviews,
           stats.recommendation_percentage,
@@ -503,19 +503,19 @@ router.get("/nearby", async (req, res) => {
             6371 * acos(
               LEAST(
                 1.0,
-                cos(radians($1)) * cos(radians(NULLIF(e.latitude, '')::double precision)) *
-                cos(radians(NULLIF(e.longitude, '')::double precision) - radians($2)) +
-                sin(radians($1)) * sin(radians(NULLIF(e.latitude, '')::double precision))
+                cos(radians($1)) * cos(radians(e.latitude)) *
+                cos(radians(e.longitude) - radians($2)) +
+                sin(radians($1)) * sin(radians(e.latitude))
               )
             )
           ) AS distance_km
         FROM fr_ecoles e
         LEFT JOIN fr_school_review_stats stats ON stats.uai = e.identifiant_de_l_etablissement
         WHERE
-          NULLIF(e.latitude, '') IS NOT NULL
-          AND NULLIF(e.longitude, '') IS NOT NULL
-          AND NULLIF(e.latitude, '')::double precision BETWEEN $1 - ($3 / 111.0) AND $1 + ($3 / 111.0)
-          AND NULLIF(e.longitude, '')::double precision BETWEEN $2 - ($3 / (111.0 * cos(radians($1)))) AND $2 + ($3 / (111.0 * cos(radians($1))))
+          e.latitude IS NOT NULL
+          AND e.longitude IS NOT NULL
+          AND e.latitude BETWEEN $1 - ($3 / 111.0) AND $1 + ($3 / 111.0)
+          AND e.longitude BETWEEN $2 - ($3 / (111.0 * cos(radians($1)))) AND $2 + ($3 / (111.0 * cos(radians($1))))
       )
       SELECT *
       FROM school_distances
@@ -573,9 +573,9 @@ router.get("/postcode/:postcode", async (req, res) => {
           e.adresse_1,
           e.adresse_2,
           e.adresse_3,
-          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
-          NULLIF(e.latitude, '')::double precision AS latitude,
-          NULLIF(e.longitude, '')::double precision AS longitude,
+          e.nombre_d_eleves AS nombre_d_eleves,
+          e.latitude AS latitude,
+          e.longitude AS longitude,
           stats.avg_overall_rating,
           stats.total_reviews,
           stats.recommendation_percentage
@@ -626,7 +626,7 @@ router.get("/city/:city", async (req, res) => {
           e.libelle_departement AS departement,
           e.libelle_academie AS academie,
           e.libelle_region AS region,
-          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
+          e.nombre_d_eleves AS nombre_d_eleves,
           stats.avg_overall_rating,
           stats.total_reviews,
           stats.recommendation_percentage
@@ -637,7 +637,7 @@ router.get("/city/:city", async (req, res) => {
           OR e.libelle_departement ILIKE $1
         ORDER BY
           COALESCE(stats.avg_overall_rating, 0) DESC,
-          COALESCE(NULLIF(e.nombre_d_eleves, '')::int, 0) DESC,
+          COALESCE(e.nombre_d_eleves, 0) DESC,
           e.nom_etablissement ASC
         LIMIT $2
       `,

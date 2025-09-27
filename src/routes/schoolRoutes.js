@@ -345,9 +345,9 @@ router.get('/:urn', async (req, res) => {
           e.telephone,
           e.web,
           e.mail,
-          NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
-          NULLIF(e.latitude, '')::double precision AS latitude,
-          NULLIF(e.longitude, '')::double precision AS longitude,
+          e.nombre_d_eleves AS nombre_d_eleves,
+          e.latitude AS latitude,
+          e.longitude AS longitude,
           e.students_total,
           e.lycee_students_total,
           e.lycee_effectifs_seconde,
@@ -393,9 +393,9 @@ router.get('/:urn', async (req, res) => {
               e.telephone,
               e.web,
               e.mail,
-              NULLIF(e.nombre_d_eleves, '')::int AS nombre_d_eleves,
-              NULLIF(e.latitude, '')::double precision AS latitude,
-              NULLIF(e.longitude, '')::double precision AS longitude
+              e.nombre_d_eleves AS nombre_d_eleves,
+              e.latitude AS latitude,
+              e.longitude AS longitude
             FROM fr_ecoles e
             WHERE e.identifiant_de_l_etablissement = $1
             LIMIT 1`;
