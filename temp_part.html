@@ -1,0 +1,544 @@
+                document.getElementById('searchSubtitle').textContent = `Consultez tous les etablissements de ${initialArea}`;
+                document.getElementById('locationInput').value = initialArea;
+            } else if (initialQuery) {
+                document.getElementById('searchInput').value = initialQuery;
+            }
+
+            updateSearchMeta({
+                query: initialQuery && !initialArea ? initialQuery : '',
+                area: initialArea || '',
+                type: FILTER_TYPE_OPTIONS.has(initialType) ? initialType : null,
+                total: 0
+            });
+
+            // Load initial results
+            searchSchools();
+        }
+        
+        function getTypeTitle(type) {
+            const titles = {
+                'primary': 'Ecoles maternelles et elementaires',
+                'secondary': 'Colleges et lycees',
+                'sixth-form': 'Lycees post-bac',
+                'special': 'Etablissements specialises',
+                'independent': 'Etablissements prives',
+                'academy': 'Etablissements sous contrat'
+            };
+            return titles[type] || "Recherche d'établissements";
+        }
+        
+        function getTypeSubtitle(type) {
+            const subtitles = {
+                'primary': 'Reperez les ecoles maternelles et elementaires pour les ages 3-11',
+                'secondary': 'Selectionnez un college ou un lycee (11-18 ans)',
+                'sixth-form': 'Trouvez un lycee post-bac ou une formation superieure',
+                'special': 'Identifiez un etablissement specialise ou adapte',
+                'independent': 'Decouvrez les etablissements prives disponibles',
+                'academy': 'Explorez les etablissements sous contrat'
+            };
+            return subtitles[type] || "Trouvez l'etablissement adapte a votre projet";
+        }
+        
+        function setInitialTypeFilter(type) {
+            const checkbox = document.getElementById(`type-${type}`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        }
+        
+        // Search function
+        async function searchSchools(page = 1) {
+            currentPage = page;
+            const offset = (page - 1) * resultsPerPage;
+            
+            // Show loading
+            if (currentView === 'list') {
+                document.getElementById('resultsList').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Chargement des etablissements...</p>
+                    </div>
+                `;
+            }
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            
+            const searchQuery = document.getElementById('searchInput').value;
+            const locationQuery = document.getElementById('locationInput').value;
+            
+            if (searchQuery) {
+                params.append('q', searchQuery);
+                params.append('type', 'name');
+            } else if (locationQuery) {
+                params.append('q', locationQuery);
+                params.append('type', 'location');
+            } else if (initialArea) {
+                params.append('q', initialArea);
+                params.append('type', 'location');
+            } else {
+                // Default search - get all schools (French dataset)
+                params.append('q', 'ecole');
+                params.append('type', 'all');
+            }
+            
+            params.append('limit', resultsPerPage);
+            params.append('offset', offset);
+            
+            // Add filters (French)
+            const filters = getActiveFilters();
+            if (filters.categories.length > 0) {
+                params.append('categories', filters.categories.join(','));
+            }
+            if (filters.statuses.length > 0) {
+                params.append('status', filters.statuses.join(','));
+            }
+            if (filters.flags.length > 0) {
+                params.append('flags', filters.flags.join(','));
+            }
+            if (filters.minRating) {
+                params.append('minRating', filters.minRating);
+            }
+            
+            try {
+                const response = await fetch(`/api/search?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    searchResults = data.schools || [];
+                    totalResults = data.total || 0;
+                    displayResults();
+                    updatePagination();
+                    updateResultsCount();
+
+                    const metaQuery = searchQuery ? searchQuery.trim() : '';
+                    const metaArea = locationQuery ? locationQuery.trim() : (initialArea || '');
+                    const metaType = resolveMetaType(filters);
+                    updateSearchMeta({
+                        query: metaQuery,
+                        area: metaQuery ? '' : metaArea,
+                        type: metaType,
+                        total: totalResults
+                    });
+
+                    if (currentView === 'map') {
+                        updateMap();
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la recherche :', error);
+                displayError();
+            }
+        }
+        
+        // Search for schools in map bounds
+        async function searchInMapBounds() {
+            if (!map) return;
+            
+            const bounds = map.getBounds();
+            const center = bounds.getCenter();
+            
+            // Add loading state to button
+            const searchBtn = document.querySelector('.map-search-control');
+            if (searchBtn) {
+                searchBtn.classList.add('loading');
+                searchBtn.innerHTML = '⏳ Searching...';
+            }
+            
+            try {
+                // Search using center coordinates
+                const params = new URLSearchParams();
+                params.append('lat', center.lat);
+                params.append('lng', center.lng);
+                params.append('radius', '10'); // 10km radius
+                params.append('limit', '100'); // Get more results for map
+                
+                const response = await fetch(`/api/search/nearby?${params}`);
+                const data = await response.json();
+                
+                if (data.success && data.schools) {
+                    searchResults = data.schools;
+                    totalResults = data.schools.length;
+
+                    // Update both map and list
+                    updateMap();
+                    displayResults();
+                    updateResultsCount();
+
+                    const filters = getActiveFilters();
+                    const metaQuery = document.getElementById('searchInput').value.trim();
+                    const metaArea = document.getElementById('locationInput').value.trim() || initialArea || '';
+                    updateSearchMeta({
+                        query: metaQuery,
+                        area: metaQuery ? '' : metaArea,
+                        type: resolveMetaType(filters),
+                        total: totalResults
+                    });
+
+                    // Show notification
+                    showNotification(`${totalResults} etablissements trouves dans cette zone`);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la recherche sur la carte :', error);
+                showNotification('Erreur lors de la recherche dans cette zone', 'error');
+            } finally {
+                // Reset button
+                if (searchBtn) {
+                    searchBtn.classList.remove('loading');
+                    searchBtn.innerHTML = 'Rechercher dans cette zone';
+                }
+            }
+        }
+        
+        function getActiveFilters() {
+            const filters = {
+                categories: [],
+                statuses: [],
+                flags: [],
+                minRating: null
+            };
+            
+            // Types d'etablissements
+            document.querySelectorAll('#schoolTypeFilters input:checked').forEach(checkbox => {
+                filters.categories.push(checkbox.value);
+            });
+            
+            // Statut public/prive
+            document.querySelectorAll('#statusFilters input:checked').forEach(checkbox => {
+                filters.statuses.push(checkbox.value);
+            });
+            // Autres criteres (flags)
+            document.querySelectorAll('#flagFilters input:checked').forEach(checkbox => {
+                filters.flags.push(checkbox.value);
+            });
+            
+            // Overall rating
+            const ratingRange = document.getElementById('ratingRange').value;
+            if (ratingRange > 1) {
+                filters.minRating = ratingRange;
+            }
+            
+            return filters;
+        }
+        
+        function displayResults() {
+            if (!searchResults || searchResults.length === 0) {
+                document.getElementById('resultsList').innerHTML = `
+                    <div class="no-results">
+                        <h3>Aucun etablissement trouve</h3>
+                        <p>Modifiez vos filtres ou votre recherche</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = searchResults.map(school => {
+                const rating = school.overall_rating ? parseFloat(school.overall_rating) : null;
+                const ratingClass = getRatingClass(rating);
+                const statut = school.statut_public_prive || school.phase_of_education || '';
+                // Format rating display - just show the number without decimals if it's 10
+                let ratingDisplay = 'N/A';
+                if (rating !== null) {
+                    ratingDisplay = rating >= 10 ? '10' : rating.toFixed(1);
+                }
+                return `
+                    <div class="school-card" onclick="window.location.href='${schoolPathFromData(school)}'">
+                        <div class="school-card-header">
+                            <div>
+                                <div class="school-card-name">${school.name}</div>
+                                <div class="school-card-type">
+                                    ${school.type_of_establishment || ''}${statut ? ` · ${statut}` : ''}
+                                </div>
+                            </div>
+                            <div class="school-card-rating rating-${ratingClass}">
+                                ${ratingDisplay}/10
+                            </div>
+                        </div>
+                        <div class="school-card-details">
+                            <div class="detail-item">
+                                <span class="detail-label">COMMUNE</span>
+                                <span>${[school.postcode, school.town].filter(Boolean).join(' ') || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">DEPARTEMENT</span>
+                                <span>${school.departement || '-'}${school.region ? ` (${school.region})` : ''}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">STATUT</span>
+                                <span>${statut || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">EFFECTIF</span>
+                                <span>${school.number_of_students || school.number_on_roll ? `${formatNumber(school.number_of_students || school.number_on_roll)} eleves` : 'Effectif inconnu'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('resultsList').innerHTML = html;
+        }
+        
+        function updateResultsCount() {
+            document.getElementById('resultsCount').textContent = totalResults;
+        }
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(totalResults / resultsPerPage);
+            if (totalPages <= 1) {
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} 
+                     onclick="searchSchools(${currentPage - 1})">Precedent</button>`;
+            
+            // Page numbers
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                         onclick="searchSchools(${i})">${i}</button>`;
+            }
+            
+            if (totalPages > 5) {
+                html += `<span class="page-btn" disabled>...</span>`;
+                html += `<button class="page-btn ${totalPages === currentPage ? 'active' : ''}" 
+                         onclick="searchSchools(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} 
+                     onclick="searchSchools(${currentPage + 1})">Suivant</button>`;
+            
+            document.getElementById('pagination').innerHTML = html;
+        }
+        
+        function toggleView(view) {
+            currentView = view;
+            
+            // Update buttons
+            const _btns = Array.from(document.querySelectorAll('.view-btn')); _btns.forEach(b=>b.classList.remove('active')); if (view === 'map' && _btns[1]) { _btns[1].classList.add('active'); } else if (_btns[0]) { _btns[0].classList.add('active'); }
+            
+            // Toggle views
+            if (view === 'map') {
+                document.getElementById('resultsList').classList.remove('active');
+                document.getElementById('schoolsMap').classList.add('active');
+                initializeMap();
+                updateMap();
+            } else {
+                document.getElementById('schoolsMap').classList.remove('active');
+                document.getElementById('resultsList').classList.add('active');
+            }
+        }
+        
+        function initializeMap() {
+            if (!isMapInitialized) {
+                map = L.map('schoolsMap').setView([46.6, 2.4], 6); // France center
+                if (window.getDefaultTileLayer) {
+                  window.getDefaultTileLayer(map);
+                } else {
+                  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                      attribution: '© OpenStreetMap contributors, © CARTO',
+                      maxZoom: 19,
+                      subdomains: 'abcd'
+                  }).addTo(map);
+                }
+                
+                // Add marker cluster group
+                markers = L.markerClusterGroup({
+                    chunkedLoading: true,
+                    maxClusterRadius: 50
+                });
+                map.addLayer(markers);
+                
+                // Add search button
+                const searchControl = L.Control.extend({
+                    options: {
+                        position: 'topleft'
+                    },
+                    onAdd: function(map) {
+                        const div = L.DomUtil.create('div', 'map-search-control');
+                        div.innerHTML = 'Rechercher dans cette zone';
+                        div.onclick = searchInMapBounds;
+                        L.DomEvent.disableClickPropagation(div);
+                        return div;
+                    }
+                });
+                
+                map.addControl(new searchControl());
+                
+                isMapInitialized = true;
+            }
+            
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        }
+        
+        function updateMap() {
+            if (!map || !isMapInitialized) return;
+            
+            // Clear existing markers
+            markers.clearLayers();
+            
+            // Add markers for schools with coordinates
+            const validSchools = [];
+            const missingCoords = [];
+            
+            searchResults.forEach(school => {
+                // Check for latitude/longitude in the school data
+                if (school.latitude && school.longitude) {
+                    const lat = parseFloat(school.latitude);
+                    const lng = parseFloat(school.longitude);
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        validSchools.push(school);
+                        
+                        const rating = school.overall_rating ? parseFloat(school.overall_rating) : null;
+                        const ratingClass = getRatingClass(rating);
+                        
+                        // Format rating display
+                        let ratingDisplay = '?';
+                        if (rating !== null) {
+                            ratingDisplay = rating >= 10 ? '10' : rating.toFixed(1);
+                        }
+                        
+                        // Create custom icon
+                        const icon = L.divIcon({
+                            className: `school-marker ${ratingClass}`,
+                            html: ratingDisplay,
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                        
+                        const marker = L.marker([lat, lng], { icon })
+                            .bindPopup(`
+                                <strong>${school.name}</strong><br>
+                                Note : ${ratingDisplay}/10<br>
+                                ${school.type_of_establishment || 'Etablissement'}<br>
+                                <a href="${schoolPathFromData(school)}">Voir la fiche</a>
+                            `);
+                        // Clicking the marker navigates directly to the school profile
+                        marker.on('click', function() {
+                            try {
+                                window.location.href = schoolPathFromData(school);
+                            } catch (e) {
+                                // Fallback: open popup if navigation fails for any reason
+                                try { this.openPopup(); } catch {}
+                            }
+                        });
+                        
+                        markers.addLayer(marker);
+                    }
+                } else {
+                    missingCoords.push(school);
+                }
+            });
+            
+            // Fit map to markers if we have any
+            if (validSchools.length > 0) {
+                const bounds = markers.getBounds();
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+                console.log(`Cartographie realisee pour ${validSchools.length} etablissements`);
+            } else if (searchResults.length > 0) {
+                // No schools have coordinates, show a message
+                console.log(`Aucune coordonnee disponible pour ${searchResults.length} etablissements`);
+                showNotification('Les donnees cartographiques ne sont pas disponibles pour ces etablissements', 'info');
+                
+                // Try to center on the general area if we know it
+                const locationQuery = document.getElementById('locationInput').value;
+                if (locationQuery) {
+                    // You could geocode the location here
+                    console.log('Geocodage a realiser :', locationQuery);
+                }
+            }
+            
+            if (missingCoords.length > 0) {
+                console.log(`${missingCoords.length} etablissements sans coordonnees`);
+            }
+        }
+        
+        function clearAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('locationInput').value = '';
+            document.querySelectorAll('.filters-sidebar input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            document.getElementById('ratingRange').value = 5;
+            document.getElementById('ratingValue').textContent = '5';
+            searchSchools();
+        }
+        
+        function displayError() {
+            document.getElementById('resultsList').innerHTML = `
+                <div class="no-results">
+                    <h3>Erreur lors du chargement des resultats</h3>
+                    <p>Veuillez reessayer plus tard</p>
+                </div>
+            `;
+        }
+        
+        function getRatingClass(rating) {
+            if (!rating) return 'average';
+            if (rating >= 8) return 'excellent';
+            if (rating >= 6) return 'good';
+            if (rating >= 4) return 'satisfactory';
+            return 'poor';
+        }
+        
+        function getOfstedLabel(rating) {
+            const labels = {
+                1: 'Excellent',
+                2: 'Bon',
+                3: 'A ameliorer',
+                4: 'Insuffisant'
+            };
+            return labels[rating] || 'Non inspecte';
+        }
+        
+        function formatNumber(num) {
+            if (!num) return 'N/A';
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#ef4444' : '#2563eb'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', debounce(() => searchSchools(), 500));
+        document.getElementById('locationInput').addEventListener('input', debounce(() => searchSchools(), 500));
+        
+        document.querySelectorAll('#schoolTypeFilters input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => searchSchools());
+        });
+        
+        document.querySelectorAll('#statusFilters input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => searchSchools());
+        });
+        
+        document.getElementById('ratingRange').addEventListener('input', function() {
+            document.getElementById('ratingValue').textContent = this.value;

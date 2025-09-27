@@ -345,16 +345,15 @@ router.get("/", async (req, res) => {
           OR e.libelle_region ILIKE $${startIndex + 2}
         )`);
       }
+    } else if (type === "all" && cleaned === "") {
+      // No term filter: return all rows (with any other filters applied)
+      // Do not push any where clause here.
     } else {
-      params.push(likeTerm);
-      const nameIdx = params.length;
-      params.push(likeTerm);
-      const communeIdx = params.length;
-      params.push(likeTerm);
-      const departementIdx = params.length;
-      params.push(prefixTerm);
-      const postalIdx = params.length;
-
+      // General term search across several fields
+      params.push(likeTerm); const nameIdx = params.length;
+      params.push(likeTerm); const communeIdx = params.length;
+      params.push(likeTerm); const departementIdx = params.length;
+      params.push(prefixTerm); const postalIdx = params.length;
       whereClauses.push(`(
         e.nom_etablissement ILIKE $${nameIdx}
         OR e.nom_commune ILIKE $${communeIdx}
@@ -368,11 +367,13 @@ router.get("/", async (req, res) => {
     if (rawFlags) {
       const cols = rawFlags.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
       const supported = new Set([
+        'ecole_maternelle','ecole_elementaire',
         'voie_generale','voie_technologique','voie_professionnelle',
         'restauration','hebergement','ulis','apprentissage','segpa',
         'section_arts','section_cinema','section_theatre','section_sport',
         'section_internationale','section_europeenne',
-        'lycee_agricole','lycee_militaire','lycee_des_metiers'
+        'lycee_agricole','lycee_militaire','lycee_des_metiers',
+        'post_bac','appartenance_education_prioritaire','greta'
       ]);
       const flagConds = [];
       cols.forEach(col => {

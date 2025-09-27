@@ -633,6 +633,14 @@
                     <h3 class="filter-title">Autres criteres</h3>
                     <div id="flagFilters" class="filter-checkbox-group">
                         <div class="filter-checkbox">
+                            <input type="checkbox" id="flag-ecole-maternelle" value="ecole_maternelle">
+                            <label for="flag-ecole-maternelle">Ecole maternelle</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="flag-ecole-elementaire" value="ecole_elementaire">
+                            <label for="flag-ecole-elementaire">Ecole elementaire</label>
+                        </div>
+                        <div class="filter-checkbox">
                             <input type="checkbox" id="voie-generale" value="voie_generale">
                             <label for="voie-generale">Voie generale</label>
                         </div>
@@ -699,6 +707,18 @@
                         <div class="filter-checkbox">
                             <input type="checkbox" id="flag-lycee-metiers" value="lycee_des_metiers">
                             <label for="flag-lycee-metiers">Lycee des metiers</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="flag-post-bac" value="post_bac">
+                            <label for="flag-post-bac">Post BAC</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="flag-education-prioritaire" value="appartenance_education_prioritaire">
+                            <label for="flag-education-prioritaire">Education prioritaire</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="flag-greta" value="greta">
+                            <label for="flag-greta">GRETA</label>
                         </div>
                     </div>
                 </div>
@@ -947,8 +967,7 @@
                 params.append('q', initialArea);
                 params.append('type', 'location');
             } else {
-                // Default search - get all schools (French dataset)
-                params.append('q', 'ecole');
+                // Default search - return all schools
                 params.append('type', 'all');
             }
             
