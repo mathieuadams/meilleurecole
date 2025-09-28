@@ -5,9 +5,9 @@
       <div>
         <h1 id="frSchoolName">Etablissement</h1>
         <div class="school-type-info" id="frTypeRow" style="gap:.5rem; flex-wrap: wrap;">
-          <span class="badge" id="frType">Type</span>
-          <span class="badge" id="frStatut">Statut</span>
-          <span class="badge" id="frAcademie">Académie</span>
+          <span class="badge" id="frType">-</span>
+          <span class="badge" id="frStatut">-</span>
+          <span class="badge" id="frDepartement">-</span>
           <span class="badge badge-neutral" id="frStudents">— élèves</span>
         </div>
         <div class="school-address-info">
@@ -30,21 +30,28 @@
 (function(){
   function set(elId, value){ var el=document.getElementById(elId); if(el) el.textContent = value || '-'; }
   function fullFRAddress(s){
-    const a1 = s.adresse_ligne1 || s.adresse_1, a2 = s.adresse_ligne2 || s.adresse_2, a3 = s.adresse_ligne3 || s.adresse_3;
+    const a1 = s.adresse_ligne1 || s.adresse_1 || s.street;
+    const a2 = s.adresse_ligne2 || s.adresse_2 || s.locality;
+    const a3 = s.adresse_ligne3 || s.adresse_3;
     const parts = [a1, a2, a3, s.postcode || s.code_postal, s.town || s.nom_commune].filter(Boolean);
     return parts.join(' ');
   }
   function renderHeader(data){
     if(!data) return;
     set('frSchoolName', data.name);
-    set('frType', data.type_etablissement || data.type_of_establishment);
-    set('frStatut', data.statut_public_prive || data.phase_of_education);
-    set('frAcademie', data.academie || data.libelle_academie);
+    // Prefer FR keys; fallbacks to UK keys
+    set('frType', (data.type_etablissement || data.type || data.type_of_establishment || '').trim());
+    set('frStatut', (data.statut_public_prive || data.phase || data.phase_of_education || '').trim());
+    // Show département (from address.local_authority) as third badge
+    try { set('frDepartement', (data.address && (data.address.local_authority || data.address.county)) || ''); } catch {}
+    // Prefer structured address if present
+    var addr = data.address || {};
     set('frAddress', fullFRAddress({
       adresse_ligne1: data.adresse_ligne1, adresse_ligne2: data.adresse_ligne2, adresse_ligne3: data.adresse_ligne3,
-      postcode: data.postcode || data.code_postal, town: data.town || data.nom_commune
+      postcode: data.postcode || data.code_postal || addr.postcode, town: data.town || data.nom_commune || addr.town,
+      street: addr.street, locality: addr.locality
     }));
-    var total = (data.enrolment_stats && data.enrolment_stats.total) || data.number_of_students || (data.demographics && data.demographics.total_students);
+    var total = (data.enrolment_stats && data.enrolment_stats.total) || (data.demographics && data.demographics.total_students) || data.number_of_students;
     var label = (total!=null) ? (Number(total).toLocaleString('fr-FR') + ' élèves') : '— élèves';
     set('frStudents', label);
   }
@@ -52,4 +59,3 @@
   window.addEventListener('schoolDataLoaded', function(e){ renderHeader(e.detail); });
 })();
 </script>
-

@@ -681,7 +681,8 @@
   window.addEventListener('schoolDataLoaded', function(e) {
     console.log('School data event received:', e.detail);
     if (e.detail && e.detail.urn) {
-      currentSchoolUrn = parseInt(e.detail.urn, 10);
+      // Keep UAI strings (France) and numeric URNs (UK)
+      currentSchoolUrn = String(e.detail.urn);
       schoolData = e.detail;
       initializeReviews();
     }
