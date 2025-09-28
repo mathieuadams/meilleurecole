@@ -8,14 +8,27 @@ const MAX_SUGGEST_LIMIT = 20;
 const MAX_RADIUS_KM = 50;
 
 const CATEGORY_PATTERNS = {
-  ecole: ["Ec%"],
-  college: ["Col%"],
-  lycee: ["Ly%"],
+  // Broaden patterns to be accent/variant tolerant
+  ecole: [
+    "Ecole%",
+    "École%",
+  ],
+  college: [
+    "Col%",          // Collège
+    "College%",      // without accent variants
+  ],
+  lycee: [
+    "Ly%",           // Lycée
+    "Lycee%",
+    "Lyc%",
+  ],
   specialise: [
-    "M%cico-social%",
+    "%Medico%",
+    "%Médico%",
     "EREA%",
-    "Service Administratif%",
-    "Information et orientation%",
+    "%Information%",
+    "%orientation%",
+    "Maison Familiale%",
     "Autre%"
   ]
 };

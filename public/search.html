@@ -302,29 +302,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        .school-marker.excellent {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-        
-        .school-marker.good {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-        }
-        
-        .school-marker.average {
-            background: #fbbf24;
-            border-color: #fbbf24;
-            color: #92400e;
-        }
-        
-        .school-marker.poor {
-            background: #ef4444;
-            border-color: #ef4444;
-            color: white;
-        }
+        /* Color by type of establishment */
+        .school-marker.type-ecole { background: #22c55e; border-color: #22c55e; color: white; }
+        .school-marker.type-college { background: #3b82f6; border-color: #3b82f6; color: white; }
+        .school-marker.type-lycee { background: #f59e0b; border-color: #f59e0b; color: white; }
+        .school-marker.type-specialise { background: #a78bfa; border-color: #8b5cf6; color: white; }
         
         /* Custom marker cluster styles */
         .marker-cluster {
@@ -799,6 +781,7 @@
         }
 
         const FILTER_TYPE_OPTIONS = new Set(['ecole', 'college', 'lycee', 'specialise']);
+        const MAP_LIMIT = 100; // request more items for map
 
         function updateSearchMeta({ query, area, type, total }) {
             const canonical = document.getElementById('canonicalLink');
@@ -971,7 +954,7 @@
                 params.append('type', 'all');
             }
             
-            params.append('limit', resultsPerPage);
+            params.append('limit', currentView === 'map' ? MAP_LIMIT : resultsPerPage);
             params.append('offset', offset);
             
             // Add filters (French)
@@ -1215,7 +1198,8 @@
                 document.getElementById('resultsList').classList.remove('active');
                 document.getElementById('schoolsMap').classList.add('active');
                 initializeMap();
-                updateMap();
+                // Fetch a larger slice for map coverage
+                searchSchools(1);
             } else {
                 document.getElementById('schoolsMap').classList.remove('active');
                 document.getElementById('resultsList').classList.add('active');
@@ -1286,7 +1270,11 @@
                         validSchools.push(school);
                         
                         const rating = school.overall_rating ? parseFloat(school.overall_rating) : null;
-                        const ratingClass = getRatingClass(rating);
+                        const type = (school.type_of_establishment || school.type_etablissement || '').toLowerCase();
+                        const typeClass = type.startsWith('ec') ? 'type-ecole'
+                                         : type.startsWith('col') ? 'type-college'
+                                         : type.startsWith('ly') ? 'type-lycee'
+                                         : 'type-specialise';
                         
                         // Format rating display
                         let ratingDisplay = '?';
@@ -1296,7 +1284,7 @@
                         
                         // Create custom icon
                         const icon = L.divIcon({
-                            className: `school-marker ${ratingClass}`,
+                            className: `school-marker ${typeClass}`,
                             html: ratingDisplay,
                             iconSize: [30, 30],
                             iconAnchor: [15, 15]
