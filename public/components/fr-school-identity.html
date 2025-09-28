@@ -1,0 +1,69 @@
+<!-- fr-school-identity.html -->
+<section class="profile-header">
+  <div class="container">
+    <div class="profile-header-content">
+      <div>
+        <h1 id="frSchoolName">Etablissement</h1>
+        <div class="school-type-info" id="frTypeRow" style="gap:.5rem; flex-wrap: wrap;">
+          <span class="badge" id="frType">Type</span>
+          <span class="badge" id="frStatut">Statut</span>
+          <span class="badge" id="frAcademie">Académie</span>
+        </div>
+        <div class="school-address-info">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+          </svg>
+          <span id="frAddress">Adresse �?� Commune �?� CP</span>
+        </div>
+      </div>
+      <div style="width: 360px; max-width:100%;">
+        <div id="frIdentityMap" style="height: 200px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; background:#f3f4f6"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.badge{background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:600}
+</style>
+
+<script>
+(function(){
+  function set(elId, value){ var el=document.getElementById(elId); if(el) el.textContent = value || '-'; }
+  function fullFRAddress(s){
+    const a1 = s.adresse_ligne1 || s.adresse_1, a2 = s.adresse_ligne2 || s.adresse_2, a3 = s.adresse_ligne3 || s.adresse_3;
+    const parts = [a1, a2, a3, s.postcode || s.code_postal, s.town || s.nom_commune].filter(Boolean);
+    return parts.join(' ');
+  }
+  function initFrIdentity(data){
+    if(!data) return;
+    set('frSchoolName', data.name);
+    set('frType', data.type_etablissement || data.type_of_establishment);
+    set('frStatut', data.statut_public_prive || data.phase_of_education);
+    set('frAcademie', data.academie || data.libelle_academie);
+    set('frAddress', fullFRAddress({
+      adresse_ligne1: data.adresse_ligne1, adresse_ligne2: data.adresse_ligne2, adresse_ligne3: data.adresse_ligne3,
+      postcode: data.postcode || data.code_postal, town: data.town || data.nom_commune
+    }));
+
+    try{
+      if(window.L && data.latitude && data.longitude){
+        const el = document.getElementById('frIdentityMap');
+        if(el && !el.dataset.mapInit){
+          const map = L.map(el).setView([Number(data.latitude), Number(data.longitude)], 15);
+          if (window.getDefaultTileLayer) { window.getDefaultTileLayer(map); }
+          else {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:19 }).addTo(map);
+          }
+          L.marker([Number(data.latitude), Number(data.longitude)]).addTo(map).bindPopup(data.name||'Etablissement');
+          el.dataset.mapInit = '1';
+        }
+      }
+    }catch(e){ console.warn('fr identity map error', e); }
+  }
+  // Render when school data is available
+  if(window.currentSchoolData) initFrIdentity(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', function(e){ initFrIdentity(e.detail); });
+})();
+</script>
+

@@ -1,0 +1,20 @@
+<!-- fr-school-enrolment.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Effectifs</h2>
+  </div>
+  <div id="frEnrolmentSummary" class="enrol-summary">Effectif total : <strong id="frTotalEleves">—</strong></div>
+  <div id="frEnrolmentChart" style="height:220px;background:#f9fafb;border:1px dashed #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;margin-top:1rem;">
+    Graphique par niveau disponible prochainement
+  </div>
+</div>
+
+<script>
+(function(){
+  function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+  function render(s){ if(!s) return; if(s.number_of_students!=null) set('frTotalEleves', Number(s.number_of_students).toLocaleString('fr-FR')); }
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e=>render(e.detail));
+})();
+</script>
+

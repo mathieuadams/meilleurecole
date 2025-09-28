@@ -878,3 +878,4 @@ document.addEventListener('componentsLoaded', () => {
 
 // -------------------------------- Init --------------------------------------
 document.addEventListener('DOMContentLoaded', loadSchoolData);
+

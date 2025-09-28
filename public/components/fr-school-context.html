@@ -1,0 +1,39 @@
+<!-- fr-school-context.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Contexte social & prioritA©</h2>
+  </div>
+  <div class="chip-grid" id="frContextChips">
+    <div class="chip"><span class="chip-label">IPS</span><span class="chip-value" id="chipIPS">—</span></div>
+    <div class="chip"><span class="chip-label">REP / REP+</span><span class="chip-value" id="chipREP">—</span></div>
+    <div class="chip"><span class="chip-label">ProximitA© QPV</span><span class="chip-value" id="chipQPV">—</span></div>
+  </div>
+  <p class="muted" id="frContextNote">Ces indicateurs seront complA©tA©s automatiquement dA¨s l'intA©gration des jeux de donnA©es IPS et A©ducation prioritaire.</p>
+</div>
+
+<style>
+.chip-grid{display:flex;gap:.75rem;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:999px;background:#fff}
+.chip-label{font-weight:600;color:#374151}
+.chip-value{color:#111827}
+.muted{margin-top:.75rem;color:#6b7280;font-size:.875rem}
+</style>
+
+<script>
+(function(){
+  function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+  function render(ctx){
+    // Placeholder until IPS / REP endpoints wired
+    if(!ctx) return;
+    if(ctx.ips) set('chipIPS', ctx.ips);
+    if(ctx.rep_flag!=null || ctx.rep_plus_flag!=null){
+      const label = ctx.rep_plus_flag ? 'REP+' : (ctx.rep_flag ? 'REP' : 'Non');
+      set('chipREP', label);
+    }
+    if(ctx.qpv_proximity!=null) set('chipQPV', ctx.qpv_proximity ? 'Oui' : 'Non');
+  }
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e => render(e.detail));
+})();
+</script>
+

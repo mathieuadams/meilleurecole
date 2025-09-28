@@ -15,6 +15,7 @@ const schoolRoutes = require('./src/routes/schoolRoutes');
 const searchRoutes = require('./src/routes/searchRoutes');
 const reviewRoutes = require('./src/routes/reviewRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
+const frDataRoutes = require('./src/routes/frDataRoutes');
 
 // ---- App
 const app = express();
@@ -129,6 +130,7 @@ app.use('/api/schools', schoolRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api', contactRoutes);
+app.use('/api/fr', frDataRoutes);
 
 // ---- HTML pages helper function
 const sendPublic = (res, file) => res.sendFile(path.join(PUBLIC_DIR, file));
