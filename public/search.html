@@ -781,7 +781,9 @@
         }
 
         const FILTER_TYPE_OPTIONS = new Set(['ecole', 'college', 'lycee', 'specialise']);
-        const MAP_LIMIT = 100; // request more items for map
+        const MAP_LIMIT = 5000; // request more items for map
+        const MAP_CHUNK = 2000; // incremental fetch size
+        const MAP_MAX_TOTAL = 20000; // safety cap to avoid freezing the browser
 
         function updateSearchMeta({ query, area, type, total }) {
             const canonical = document.getElementById('canonicalLink');
@@ -995,11 +997,62 @@
 
                     if (currentView === 'map') {
                         updateMap();
+                        // If there are many more results, fetch additional pages for map
+                        if (totalResults > searchResults.length) {
+                            fetchAdditionalMapResults();
+                        }
                     }
                 }
             } catch (error) {
                 console.error('Erreur lors de la recherche :', error);
                 displayError();
+            }
+        }
+
+        // Incrementally fetch more results for the map up to a safe cap
+        async function fetchAdditionalMapResults() {
+            // Build a fresh params baseline like in searchSchools
+            const paramsBase = new URLSearchParams();
+            const searchQuery = document.getElementById('searchInput').value;
+            const locationQuery = document.getElementById('locationInput').value;
+            if (searchQuery) {
+                paramsBase.append('q', searchQuery);
+                paramsBase.append('type', 'name');
+            } else if (locationQuery) {
+                paramsBase.append('q', locationQuery);
+                paramsBase.append('type', 'location');
+            } else if (initialArea) {
+                paramsBase.append('q', initialArea);
+                paramsBase.append('type', 'location');
+            } else {
+                paramsBase.append('type', 'all');
+            }
+
+            const filters = getActiveFilters();
+            if (filters.categories.length > 0) paramsBase.append('categories', filters.categories.join(','));
+            if (filters.statuses.length > 0) paramsBase.append('status', filters.statuses.join(','));
+            if (filters.flags.length > 0) paramsBase.append('flags', filters.flags.join(','));
+            if (filters.minRating) paramsBase.append('minRating', filters.minRating);
+
+            let fetched = searchResults.length;
+            const target = Math.min(totalResults, MAP_MAX_TOTAL);
+            while (currentView === 'map' && fetched < target) {
+                const limit = Math.min(MAP_CHUNK, target - fetched);
+                const params = new URLSearchParams(paramsBase);
+                params.append('limit', String(limit));
+                params.append('offset', String(fetched));
+                try {
+                    const resp = await fetch(`/api/search?${params}`);
+                    const data = await resp.json();
+                    const chunk = Array.isArray(data.schools) ? data.schools : [];
+                    if (!chunk.length) break;
+                    searchResults = searchResults.concat(chunk);
+                    fetched += chunk.length;
+                    updateMap();
+                } catch (e) {
+                    console.warn('Map chunk fetch failed:', e);
+                    break;
+                }
             }
         }
         
@@ -1023,7 +1076,7 @@
                 params.append('lat', center.lat);
                 params.append('lng', center.lng);
                 params.append('radius', '10'); // 10km radius
-                params.append('limit', '100'); // Get more results for map
+                params.append('limit', '5000'); // Load a lot more points for map
                 
                 const response = await fetch(`/api/search/nearby?${params}`);
                 const data = await response.json();

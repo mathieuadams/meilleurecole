@@ -3,7 +3,8 @@ const router = express.Router();
 const { query } = require("../config/database");
 
 const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 100;
+// Allow large responses for map clustering; keep reasonable cap
+const MAX_LIMIT = 10000;
 const MAX_SUGGEST_LIMIT = 20;
 const MAX_RADIUS_KM = 50;
 
