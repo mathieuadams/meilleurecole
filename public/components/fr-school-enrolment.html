@@ -4,17 +4,42 @@
     <h2 class="section-title">Effectifs</h2>
   </div>
   <div id="frEnrolmentSummary" class="enrol-summary">Effectif total : <strong id="frTotalEleves">—</strong></div>
-  <div id="frEnrolmentChart" style="height:220px;background:#f9fafb;border:1px dashed #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;margin-top:1rem;">
-    Graphique par niveau disponible prochainement
-  </div>
+  <canvas id="frEnrolmentCanvas" height="160" style="max-width:100%; margin-top: 1rem;"></canvas>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function(){
   function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
-  function render(s){ if(!s) return; if(s.number_of_students!=null) set('frTotalEleves', Number(s.number_of_students).toLocaleString('fr-FR')); }
+  let chart;
+  function renderChart(total, avg){
+    const ctx = document.getElementById('frEnrolmentCanvas');
+    if (!ctx || !window.Chart) return;
+    const data = {
+      labels: ['Etablissement', 'Moyenne dépt.'],
+      datasets: [{
+        label: 'Nombre d\'élèves',
+        data: [total ?? null, avg ?? null],
+        backgroundColor: ['#2563eb', '#9ca3af']
+      }]
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    };
+    if (chart) { chart.data = data; chart.options = options; chart.update(); }
+    else { chart = new Chart(ctx, { type: 'bar', data, options }); }
+  }
+  function render(s){
+    if(!s) return;
+    const total = (s.enrolment_stats && s.enrolment_stats.total) || s.number_of_students || (s.demographics && s.demographics.total_students);
+    if(total!=null) set('frTotalEleves', Number(total).toLocaleString('fr-FR'));
+    const avg = s.enrolment_stats && s.enrolment_stats.departement_average;
+    renderChart(total, avg);
+  }
   if(window.currentSchoolData) render(window.currentSchoolData);
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
 })();
 </script>
-

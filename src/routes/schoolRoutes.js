@@ -479,6 +479,11 @@ router.get('/:urn', async (req, res) => {
           test_scores: null,
           ofsted: null,
 
+          // Enrolment (FR)
+          enrolment_stats: {
+            total: (row.nombre_d_eleves != null ? parseInt(row.nombre_d_eleves, 10) : null)
+          },
+
           overall_rating: overallOn10,
           rating_components: null,
           rating_percentile: null,
@@ -500,6 +505,25 @@ router.get('/:urn', async (req, res) => {
           }
         }
       };
+
+      // Add departement average (same type) for comparison if possible
+      try {
+        if (row.departement && row.type_etablissement) {
+          const depAvgSql = `
+            SELECT AVG(nombre_d_eleves)::numeric(10,2) AS avg_dep
+            FROM fr_ecoles
+            WHERE libelle_departement = $1
+              AND type_etablissement = $2
+              AND nombre_d_eleves IS NOT NULL`;
+          const depAvgR = await query(depAvgSql, [row.departement, row.type_etablissement]);
+          const avgDep = depAvgR.rows && depAvgR.rows[0] ? depAvgR.rows[0].avg_dep : null;
+          if (avgDep != null) {
+            payload.school.enrolment_stats.departement_average = Number(avgDep);
+          }
+        }
+      } catch (e) {
+        console.warn('FR departement average error:', e.message);
+      }
 
       return res.json(payload);
     }
