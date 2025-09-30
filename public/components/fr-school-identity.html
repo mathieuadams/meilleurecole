@@ -30,21 +30,34 @@
 (function(){
   function set(elId, value){ var el=document.getElementById(elId); if(el) el.textContent = value || '-'; }
   function fullFRAddress(s){
-    const a1 = s.adresse_ligne1 || s.adresse_1 || s.street;
-    const a2 = s.adresse_ligne2 || s.adresse_2 || s.locality;
-    const a3 = s.adresse_ligne3 || s.adresse_3;
-    const parts = [a1, a2, a3, s.postcode || s.code_postal, s.town || s.nom_commune].filter(Boolean);
+    var a1 = s.adresse_ligne1 || s.adresse_1 || s.street;
+    var a2 = s.adresse_ligne2 || s.adresse_2 || s.locality;
+    var a3 = s.adresse_ligne3 || s.adresse_3;
+    var parts = [a1, a2, a3, s.postcode || s.code_postal, s.town || s.nom_commune].filter(Boolean);
     return parts.join(' ');
   }
-  function renderHeader(data){
+  async function fetchEffectifTotalIfMissing(data){
+    var current = (data.enrolment_stats && data.enrolment_stats.total) || (data.demographics && data.demographics.total_students) || data.number_of_students;
+    if (current != null) return current;
+    var te = (data.type_etablissement || data.type || '').toLowerCase();
+    var type = null;
+    if (te.includes('coll')) type = 'college';
+    else if (te.includes('pro')) type = 'lycee_pro';
+    else if (te.includes('lyc')) type = 'lycee_gt';
+    if (!type) return null;
+    try {
+      var resp = await fetch('/api/fr/effectifs/' + encodeURIComponent(data.urn) + '?type=' + type);
+      var payload = await resp.json();
+      if (payload && payload.success && payload.total != null) return payload.total;
+    } catch (e) { }
+    return null;
+  }
+  async function renderHeader(data){
     if(!data) return;
     set('frSchoolName', data.name);
-    // Prefer FR keys; fallbacks to UK keys
     set('frType', (data.type_etablissement || data.type || data.type_of_establishment || '').trim());
     set('frStatut', (data.statut_public_prive || data.phase || data.phase_of_education || '').trim());
-    // Show département (from address.local_authority) as third badge
     try { set('frDepartement', (data.address && (data.address.local_authority || data.address.county)) || ''); } catch {}
-    // Prefer structured address if present
     var addr = data.address || {};
     set('frAddress', fullFRAddress({
       adresse_ligne1: data.adresse_ligne1, adresse_ligne2: data.adresse_ligne2, adresse_ligne3: data.adresse_ligne3,
@@ -52,10 +65,12 @@
       street: addr.street, locality: addr.locality
     }));
     var total = (data.enrolment_stats && data.enrolment_stats.total) || (data.demographics && data.demographics.total_students) || data.number_of_students;
-    var label = (total!=null) ? (Number(total).toLocaleString('fr-FR') + ' élèves') : '— élèves';
+    if (total == null) total = await fetchEffectifTotalIfMissing(data);
+    var label = (total!=null) ? (Number(total).toLocaleString('fr-FR') + ' eleves') : '� eleves';
     set('frStudents', label);
   }
   if(window.currentSchoolData) renderHeader(window.currentSchoolData);
   window.addEventListener('schoolDataLoaded', function(e){ renderHeader(e.detail); });
 })();
 </script>
+

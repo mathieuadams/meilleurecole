@@ -6,6 +6,7 @@ const {
   searchDirectory,
   nearbyDirectory,
 } = require('../services/frOpendata');
+const { getEffectifsByType } = require('../services/frOpendata');
 
 // GET /api/fr/identity/:uai
 router.get('/identity/:uai', async (req, res) => {
@@ -54,3 +55,18 @@ router.get('/identity/nearby', async (req, res) => {
 
 module.exports = router;
 
+// Effectifs by school type
+router.get('/effectifs/:uai', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    const type = String(req.query.type || '').trim(); // college | lycee_gt | lycee_pro
+    const year = req.query.year ? String(req.query.year) : undefined;
+    if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
+
+    const result = await getEffectifsByType({ uai, type, year, ttlMs: 2 * 60 * 60 * 1000 });
+    res.json({ success: true, uai, type, ...result });
+  } catch (e) {
+    console.error('fr/effectifs error', e);
+    res.status(500).json({ error: 'Effectifs indisponibles', message: e.message });
+  }
+});

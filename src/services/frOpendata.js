@@ -4,6 +4,9 @@ const APP_TOKEN = process.env.FR_DATA_APP_TOKEN || process.env.X_APP_TOKEN || nu
 // Datasets
 const DS = {
   directory: 'fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre',
+  effectifs_college: 'fr-en-college-effectifs-niveau-sexe-lv',
+  effectifs_lycee_gt: 'fr-en-lycee_gt-effectifs-niveau-sexe-lv',
+  effectifs_lycee_pro: 'fr-en-lycee_pro-effectifs-niveau-sexe-lv',
 };
 
 // Simple in-memory cache with TTL
@@ -153,3 +156,63 @@ module.exports = {
   nearbyDirectory,
 };
 
+// ------------------------------ Effectifs ----------------------------------
+
+function readEffectifField(fields) {
+  const keys = ['effectif', 'nombre_eleves', 'nb_eleves', 'nombre_d_eleves'];
+  for (const k of keys) {
+    const v = fields[k];
+    if (v !== undefined && v !== null && v !== '') {
+      const n = Number(v);
+      if (Number.isFinite(n)) return n;
+    }
+  }
+  return 0;
+}
+
+function readNiveauLabel(fields) {
+  return (
+    fields.libelle_niveau ||
+    fields.niveau ||
+    fields.libelle_cycle ||
+    fields.serie ||
+    'Autre'
+  );
+}
+
+async function getEffectifsByType({ uai, type, year, rows = 1000, ttlMs } = {}) {
+  let dataset, refineKey;
+  const t = String(type || '').toLowerCase();
+  if (t === 'college') {
+    dataset = DS.effectifs_college; refineKey = 'uai';
+  } else if (t === 'lycee_gt' || t === 'lycee' || t === 'lycee_general' || t.includes('gt')) {
+    dataset = DS.effectifs_lycee_gt; refineKey = 'numero_lycee';
+  } else if (t === 'lycee_pro' || t.includes('pro')) {
+    dataset = DS.effectifs_lycee_pro; refineKey = 'numero_lycee';
+  } else {
+    throw new Error('Unsupported effectifs type');
+  }
+
+  const params = { rows };
+  params[`refine.${refineKey}`] = uai;
+  if (year) params['refine.rentree_scolaire'] = year;
+
+  const data = await callDataset(dataset, params, { ttlMs });
+  const records = data?.records || [];
+  let total = 0;
+  const byLevel = {};
+  let chosenYear = year || null;
+
+  for (const rec of records) {
+    const f = rec.fields || {};
+    const eff = readEffectifField(f);
+    total += eff;
+    const lvl = readNiveauLabel(f);
+    byLevel[lvl] = (byLevel[lvl] || 0) + eff;
+    if (!chosenYear && f.rentree_scolaire) chosenYear = f.rentree_scolaire;
+  }
+
+  return { total, by_level: byLevel, year: chosenYear, dataset };
+}
+
+module.exports.getEffectifsByType = getEffectifsByType;

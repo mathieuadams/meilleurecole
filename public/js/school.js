@@ -218,9 +218,15 @@ function extractURN() {
   } catch {}
 
   const parts = (window.location.pathname || '').split('/').filter(Boolean);
+  // Look for French UAI pattern first: 7 digits + letter (e.g., 0755169L)
+  const uaiRegex = /(\d{7}[A-Za-z])/;
   for (let i = parts.length - 1; i >= 0; i--) {
-    const m = parts[i].match(/^(\d{4,})/); // 4+ digits to avoid accidental matches
-    if (m) return m[1];
+    const seg = parts[i];
+    const uaiMatch = seg.match(uaiRegex);
+    if (uaiMatch) return uaiMatch[1];
+    // Fallback: numeric URN at the beginning (UK)
+    const ukMatch = seg.match(/^(\d{4,})/);
+    if (ukMatch) return ukMatch[1];
   }
   return null;
 }

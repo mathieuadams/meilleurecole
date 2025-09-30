@@ -32,12 +32,42 @@
     if (chart) { chart.data = data; chart.options = options; chart.update(); }
     else { chart = new Chart(ctx, { type: 'bar', data, options }); }
   }
+  async function loadByLevel(s) {
+    if (!s || !s.urn) return null;
+    const te = (s.type_etablissement || s.type || '').toLowerCase();
+    let type = null;
+    if (te.includes('coll')) type = 'college';
+    else if (te.includes('pro')) type = 'lycee_pro';
+    else if (te.includes('lyc')) type = 'lycee_gt';
+    if (!type) return null;
+    try {
+      const resp = await fetch(`/api/fr/effectifs/${encodeURIComponent(s.urn)}?type=${type}`);
+      const data = await resp.json();
+      if (!data || !data.success) return null;
+      return data;
+    } catch(_) { return null; }
+  }
+
   function render(s){
     if(!s) return;
     const total = (s.enrolment_stats && s.enrolment_stats.total) || s.number_of_students || (s.demographics && s.demographics.total_students);
     if(total!=null) set('frTotalEleves', Number(total).toLocaleString('fr-FR'));
     const avg = s.enrolment_stats && s.enrolment_stats.departement_average;
     renderChart(total, avg);
+    // Fetch richer breakdown when available
+    loadByLevel(s).then((dataset) => {
+      if (!dataset || !dataset.by_level) return;
+      const labels = Object.keys(dataset.by_level);
+      const values = labels.map(k => dataset.by_level[k]);
+      const ctx = document.getElementById('frEnrolmentCanvas');
+      if (!ctx || !window.Chart) return;
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: `Effectifs (${dataset.year || ''})`, data: values, backgroundColor: '#2563eb' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+      });
+    });
   }
   if(window.currentSchoolData) render(window.currentSchoolData);
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
