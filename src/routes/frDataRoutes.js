@@ -9,6 +9,7 @@ const {
 const { getEffectifsByType } = require('../services/frOpendata');
 const { getEffectifsHistory } = require('../services/frOpendata');
 const { getIPS } = require('../services/frOpendata');
+const { getAnnuaireByUai } = require('../services/frOpendata');
 const { query } = require('../config/database');
 
 // GET /api/fr/identity/:uai
@@ -53,6 +54,20 @@ router.get('/identity/nearby', async (req, res) => {
   } catch (e) {
     console.error('fr/identity nearby error', e);
     res.status(500).json({ error: 'Recherche de proximite indisponible', message: e.message });
+  }
+});
+
+// GET /api/fr/contacts/:uai -> telephone, fax, mail, web, fiche_onisep
+router.get('/contacts/:uai', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    if (!uai) return res.status(400).json({ error: 'UAI requis' });
+    const info = await getAnnuaireByUai(uai, { ttlMs: 2 * 60 * 60 * 1000 });
+    if (!info) return res.status(404).json({ error: 'Coordonnees introuvables' });
+    res.json({ success: true, uai, contacts: info });
+  } catch (e) {
+    console.error('fr/contacts error', e);
+    res.status(500).json({ error: 'Coordonnees indisponibles', message: e.message });
   }
 });
 

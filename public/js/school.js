@@ -558,14 +558,10 @@ function updateContactInfo(school) {
   const laLabel = isFR ? 'Département' : 'Local Authority';
   setText('nh-la', addr.local_authority ? `${laLabel}: ${addr.local_authority}` : '');
 
-  // Leader
-  const leader = [school.headteacher_name, school.headteacher_job_title].filter(Boolean).join(' — ');
-  setText('nh-leader', leader || '—');
-
   // Phone
   const phoneEl = document.getElementById('nh-phone');
   if (phoneEl) {
-    phoneEl.textContent = school.telephone || '—';
+    phoneEl.textContent = school.telephone || '-';
     if (school.telephone) phoneEl.href = `tel:${school.telephone}`;
   }
 
@@ -610,8 +606,7 @@ function updateContactInfo(school) {
       const url = school.website.startsWith('http') ? school.website : `https://${school.website}`;
       webEl.textContent = school.website;
       webEl.href = url;
-    } else {
-      webEl.textContent = '—';
+    } else {\n      webEl.textContent = '-';
       webEl.removeAttribute('href');
     }
   }
@@ -623,6 +618,42 @@ function updateContactInfo(school) {
     maps.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
   }
 
+    // Onisep link
+  const onisepEl = document.getElementById("nh-onisep");
+  if (onisepEl) {
+    if (school.fiche_onisep) { onisepEl.textContent = "Voir la fiche Onisep"; onisepEl.href = school.fiche_onisep; }
+    else { onisepEl.textContent = "-"; onisepEl.removeAttribute("href"); }
+  }
+
+  // Fallback contacts (France)
+  const needPhone = !school.telephone; const needWeb = !school.website; const needEmail = !school.email; const needOnisep = !school.fiche_onisep;
+  if (isFR && (needPhone || needWeb || needEmail || needOnisep)) {
+    fetch(`/api/fr/contacts/${encodeURIComponent(school.urn)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d || !d.success || !d.contacts) return;
+        const c = d.contacts;
+        if (needPhone && c.telephone) { school.telephone = c.telephone; const el=document.getElementById('nh-phone'); if (el){ el.textContent=c.telephone; el.href=`tel:${c.telephone}`; } }
+        if (needWeb && c.web) { school.website = c.web; const el=document.getElementById('nh-website'); if (el){ const url=c.web.startsWith('http')?c.web:`https://${c.web}`; el.textContent=c.web; el.href=url; } }
+        if (needEmail && c.mail) {
+          school.email = c.mail;
+          let emailEl = document.querySelector('#nh-email');
+          if (!emailEl) {
+            const websiteRow = document.querySelector('#nh-website')?.closest('.contact-row');
+            const holder = websiteRow?.parentElement || document.querySelector('.contact-card');
+            if (holder) {
+              const row = document.createElement('div'); row.className='contact-row';
+              row.innerHTML = `<div class="contact-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884l7.197 4.5a1 1 0 001.1 0l7.197-4.5A2 2 0 0016.8 4H3.2a2 2 0 00-1.197 1.884z"/><path d="M18 8.118l-6.803 4.25a3 3 0 01-3.394 0L1 8.118V14a2 2 0 002 2h14a2 2 0 002-2V8.118z"/></svg></div><div class="contact-content"><div class="contact-label">Email</div><a id="nh-email" href="#" rel="nofollow"></a></div>`;
+              if (websiteRow) holder.insertBefore(row, websiteRow); else holder.appendChild(row);
+              emailEl = row.querySelector('#nh-email');
+            }
+          }
+          if (emailEl) { emailEl.textContent = c.mail; emailEl.href = `mailto:${c.mail}`; }
+        }
+        if (needOnisep && c.fiche_onisep) { school.fiche_onisep = c.fiche_onisep; const el=document.getElementById('nh-onisep'); if (el){ el.textContent='Voir la fiche Onisep'; el.href=c.fiche_onisep; } }
+      })
+      .catch(()=>{});
+  }
   if (school.latitude && school.longitude) initMap(school.latitude, school.longitude, school.name);
 }
 

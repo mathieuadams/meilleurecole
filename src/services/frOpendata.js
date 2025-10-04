@@ -4,6 +4,7 @@ const APP_TOKEN = process.env.FR_DATA_APP_TOKEN || process.env.X_APP_TOKEN || nu
 // Datasets
 const DS = {
   directory: 'fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre',
+  annuaire: 'fr-en-annuaire-education',
   effectifs_college: 'fr-en-college-effectifs-niveau-sexe-lv',
   effectifs_lycee_gt: 'fr-en-lycee_gt-effectifs-niveau-sexe-lv',
   effectifs_lycee_pro: 'fr-en-lycee_pro-effectifs-niveau-sexe-lv',
@@ -360,3 +361,33 @@ async function getIPS({ uai, type, rows = 5, ttlMs } = {}) {
 }
 
 module.exports.getIPS = getIPS;
+
+// ------------------------------ Annuaire (contacts) ------------------------
+
+function normalizeAnnuaireRecord(rec) {
+  const f = rec?.fields || {};
+  return {
+    uai: f.identifiant_de_l_etablissement || null,
+    telephone: f.telephone || null,
+    fax: f.fax || null,
+    web: f.web || null,
+    mail: f.mail || null,
+    fiche_onisep: f.fiche_onisep || null,
+    adresse_1: f.adresse_1 || null,
+    adresse_2: f.adresse_2 || null,
+    adresse_3: f.adresse_3 || null,
+    code_postal: f.code_postal || null,
+    nom_commune: f.nom_commune || null,
+  };
+}
+
+async function getAnnuaireByUai(uai, { ttlMs } = {}) {
+  const data = await callDataset(DS.annuaire, {
+    rows: 1,
+    [`refine.identifiant_de_l_etablissement`]: uai,
+  }, { ttlMs });
+  const rec = data?.records?.[0];
+  return rec ? normalizeAnnuaireRecord(rec) : null;
+}
+
+module.exports.getAnnuaireByUai = getAnnuaireByUai;
