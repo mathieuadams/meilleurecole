@@ -11,6 +11,7 @@ const { getEffectifsHistory } = require('../services/frOpendata');
 const { getIPS } = require('../services/frOpendata');
 const { getAnnuaireByUai } = require('../services/frOpendata');
 const { getLanguagesByType } = require('../services/frOpendata');
+const { getCollegeResults, getLyceeGTResults } = require('../services/frOpendata');
 const { query } = require('../config/database');
 
 // GET /api/fr/identity/:uai
@@ -84,6 +85,28 @@ router.get('/langues/:uai', async (req, res) => {
   } catch (e) {
     console.error('fr/langues error', e);
     res.status(500).json({ error: 'Langues indisponibles', message: e.message });
+  }
+});
+
+// GET /api/fr/resultats/:uai?type=college|lycee_gt
+router.get('/resultats/:uai', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    const type = String(req.query.type || '').trim().toLowerCase();
+    if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
+
+    if (type === 'college') {
+      const r = await getCollegeResults({ uai, ttlMs: 2 * 60 * 60 * 1000 });
+      return res.json({ success: true, uai, type, ...r });
+    }
+    if (type === 'lycee' || type === 'lycee_gt' || type.includes('gt')) {
+      const r = await getLyceeGTResults({ uai, ttlMs: 2 * 60 * 60 * 1000 });
+      return res.json({ success: true, uai, type: 'lycee_gt', ...r });
+    }
+    return res.status(400).json({ error: 'Unsupported type for resultats' });
+  } catch (e) {
+    console.error('fr/resultats error', e);
+    res.status(500).json({ error: 'Resultats indisponibles', message: e.message });
   }
 });
 

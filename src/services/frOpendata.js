@@ -14,6 +14,9 @@ const DS = {
   ips_lycees_2023: 'fr-en-ips-lycees-ap2023',
   ips_lycees_2022: 'fr-en-ips-lycees-ap2022',
   ips_lycees_legacy: 'fr-en-ips_lycees',
+  dnb_by_etab: 'fr-en-dnb-par-etablissement',
+  lycee_gt_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-general-et-technologique',
+  lycee_pro_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-professionnels',
 };
 
 // Simple in-memory cache with TTL
@@ -446,3 +449,69 @@ async function getLanguagesByType({ uai, type, year, rows = 1000, ttlMs } = {}) 
 }
 
 module.exports.getLanguagesByType = getLanguagesByType;
+
+// ------------------------------ Exam results -------------------------------
+
+function num(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = Number(String(v).replace(',', '.').replace('%',''));
+  return Number.isFinite(n) ? n : null;
+}
+
+async function getCollegeResults({ uai, ttlMs } = {}) {
+  const data = await callDataset(DS.dnb_by_etab, { rows: 100, [`refine.numero_d_etablissement`]: uai }, { ttlMs });
+  const recs = data?.records || [];
+  // choose latest session numeric
+  let chosen = null; let chosenYear = null;
+  for (const r of recs) {
+    const f = r.fields || {};
+    const year = parseInt(String(f.session || '').match(/\d{4}/)?.[0] || '0', 10);
+    if (!chosen || year > chosenYear) { chosen = f; chosenYear = year; }
+  }
+  if (!chosen) return { year: null, summary: null };
+  const presents = num(chosen.presents);
+  const admis = num(chosen.admis);
+  const taux = num(chosen.taux_de_reussite);
+  const mentions = {
+    sans: num(chosen.admis_sans_mention),
+    ab: num(chosen.nombre_d_admis_mention_ab),
+    bien: num(chosen.admis_mention_bien),
+    tb: num(chosen.admis_mention_tres_bien),
+  };
+  return {
+    year: String(chosenYear),
+    summary: { presents, admis, success_rate: taux },
+    mentions,
+    dataset: DS.dnb_by_etab,
+  };
+}
+
+async function getLyceeGTResults({ uai, ttlMs } = {}) {
+  const data = await callDataset(DS.lycee_gt_indicators, { rows: 100, [`refine.code_etablissement`]: uai }, { ttlMs });
+  const recs = data?.records || [];
+  let chosen = null; let chosenYear = null;
+  for (const r of recs) {
+    const f = r.fields || {};
+    const year = parseInt(String(f.annee || '').match(/\d{4}/)?.[0] || '0', 10);
+    if (!chosen || year > chosenYear) { chosen = f; chosenYear = year; }
+  }
+  if (!chosen) return { year: null, summary: null };
+  const presents = num(chosen.effectif_presents_total_series) ?? num(chosen.presents_gnle);
+  const successRate = num(chosen.taux_brut_de_reussite_total_series) ?? num(chosen.taux_reu_brut_gnle);
+  const mentionsRate = num(chosen.taux_mention_brut_toutes_series);
+  const mentionsCounts = {
+    ab: num(chosen.nombre_de_mentions_ab_t) ?? num(chosen.nombre_de_mentions_ab_g),
+    bien: num(chosen.nombre_de_mentions_b_t) ?? num(chosen.nombre_de_mentions_b_g),
+    tb_sans: num(chosen.nombre_de_mentions_tb_sans_felicitations_t) ?? num(chosen.nombre_de_mentions_tb_sans_felicitations_g),
+    tb_fel: num(chosen.nombre_de_mentions_tb_avec_felicitations_t) ?? num(chosen.nombre_de_mentions_tb_avec_felicitations_g),
+  };
+  return {
+    year: String(chosenYear),
+    summary: { presents, success_rate: successRate, mentions_rate: mentionsRate },
+    mentions_counts: mentionsCounts,
+    dataset: DS.lycee_gt_indicators,
+  };
+}
+
+module.exports.getCollegeResults = getCollegeResults;
+module.exports.getLyceeGTResults = getLyceeGTResults;

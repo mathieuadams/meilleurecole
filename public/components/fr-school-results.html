@@ -1,0 +1,99 @@
+<!-- fr-school-results.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Resultats</h2>
+  </div>
+
+  <div id="frResultsWrap">
+    <div class="muted">Chargement des resultats...</div>
+  </div>
+</div>
+
+<style>
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:.5rem}
+.metric-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:1rem}
+.metric-title{color:#6b7280;font-size:.875rem}
+.metric-value{font-size:1.75rem;font-weight:700;margin-top:.25rem}
+.metric-sublabel{color:#6b7280;font-size:.75rem}
+.mentions-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem}
+.mention-chip{display:inline-flex;gap:.25rem;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:.25rem .5rem;background:#fff}
+.muted{margin-top:.5rem;color:#6b7280;font-size:.875rem}
+</style>
+
+<script>
+(function(){
+  function setWrap(html){ var el=document.getElementById('frResultsWrap'); if(el) el.innerHTML=html; }
+  function detectType(s){
+    const te = (s.type_etablissement || s.type || '').toLowerCase();
+    if (te.includes('coll')) return 'college';
+    if (te.includes('lyc')) return 'lycee_gt';
+    return null;
+  }
+  function fmtPct(v){ if(v==null||isNaN(v)) return '—'; const n=Number(v); return (n%1===0? n.toFixed(0): n.toFixed(1)) + '%'; }
+  function fmtInt(v){ return (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString('fr-FR'); }
+
+  async function loadResults(s){
+    const type = detectType(s); if(!type) return null;
+    try{ const r = await fetch(`/api/fr/resultats/${encodeURIComponent(s.urn)}?type=${type}`); return await r.json(); }catch{ return null; }
+  }
+
+  function renderCollege(data){
+    const y = data.year || '';
+    const pres = data.summary?.presents;
+    const taux = data.summary?.success_rate;
+    const m = data.mentions||{};
+    setWrap(`
+      <div class="results-grid">
+        <div class="metric-card"><div class="metric-title">Presents</div><div class="metric-value">${fmtInt(pres)}</div><div class="metric-sublabel">DNB ${y}</div></div>
+        <div class="metric-card"><div class="metric-title">Taux de reussite</div><div class="metric-value">${fmtPct(taux)}</div><div class="metric-sublabel">DNB ${y}</div></div>
+        <div class="metric-card">
+          <div class="metric-title">Mentions</div>
+          <div class="mentions-row">
+            <span class="mention-chip"><strong>AB</strong> ${fmtInt(m.ab)}</span>
+            <span class="mention-chip"><strong>Bien</strong> ${fmtInt(m.bien)}</span>
+            <span class="mention-chip"><strong>TB</strong> ${fmtInt(m.tb)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="muted">Source: ${data.dataset || 'MENJS'} — Session ${y}</div>
+    `);
+  }
+
+  function renderLycee(data){
+    const y = data.year || '';
+    const pres = data.summary?.presents;
+    const taux = data.summary?.success_rate;
+    const tauxMen = data.summary?.mentions_rate;
+    const m = data.mentions_counts||{};
+    setWrap(`
+      <div class="results-grid">
+        <div class="metric-card"><div class="metric-title">Presents</div><div class="metric-value">${fmtInt(pres)}</div><div class="metric-sublabel">Bac ${y}</div></div>
+        <div class="metric-card"><div class="metric-title">Taux de reussite</div><div class="metric-value">${fmtPct(taux)}</div><div class="metric-sublabel">Bac ${y}</div></div>
+        <div class="metric-card"><div class="metric-title">Taux de mentions</div><div class="metric-value">${fmtPct(tauxMen)}</div><div class="metric-sublabel">Bac ${y}</div></div>
+        <div class="metric-card">
+          <div class="metric-title">Mentions</div>
+          <div class="mentions-row">
+            <span class="mention-chip"><strong>AB</strong> ${fmtInt(m.ab)}</span>
+            <span class="mention-chip"><strong>Bien</strong> ${fmtInt(m.bien)}</span>
+            <span class="mention-chip"><strong>TB</strong> ${fmtInt(m.tb_sans)}</span>
+            <span class="mention-chip"><strong>TB + feli</strong> ${fmtInt(m.tb_fel)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="muted">Source: ${data.dataset || 'MENJS'} — Annee ${y}</div>
+    `);
+  }
+
+  async function render(s){
+    if(!s||!s.urn) return;
+    const data = await loadResults(s);
+    if(!data || !data.success || !data.year){ setWrap('<div class="muted">Aucune donnee disponible</div>'); return; }
+    const isCollege = (String(data.type||'college').toLowerCase().includes('college'));
+    if (isCollege) renderCollege(data); else renderLycee(data);
+  }
+
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e=>render(e.detail));
+})();
+</script>
+
