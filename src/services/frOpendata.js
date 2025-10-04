@@ -159,7 +159,7 @@ module.exports = {
 // ------------------------------ Effectifs ----------------------------------
 
 function readEffectifField(fields) {
-  const keys = ['effectif', 'nombre_eleves', 'nb_eleves', 'nombre_d_eleves'];
+  const keys = ['effectif', 'nombre_eleves', 'nb_eleves', 'nombre_d_eleves', 'nombre_eleves_total', 'nombre_d_eleves_total'];
   for (const k of keys) {
     const v = fields[k];
     if (v !== undefined && v !== null && v !== '') {
@@ -245,3 +245,59 @@ async function getEffectifsByType({ uai, type, year, rows = 1000, ttlMs } = {}) 
 }
 
 module.exports.getEffectifsByType = getEffectifsByType;
+
+// -------------------------- Effectifs history ------------------------------
+
+function readTotalForRecord(dataset, fields) {
+  if (!fields) return 0;
+  if (dataset === DS.effectifs_college) {
+    const direct = Number(fields.nombre_eleves_total);
+    if (Number.isFinite(direct)) return direct;
+    const parts = [
+      Number(fields.nombre_total_de_6emes),
+      Number(fields.nombre_total_de_5emes),
+      Number(fields.nombre_total_de_4emes),
+      Number(fields.nombre_total_de_3emes),
+      Number(fields.nombre_d_eleves_total_ulis),
+      Number(fields.nombre_d_eleves_total_segpa),
+    ];
+    return parts.reduce((a,b)=> a + (Number.isFinite(b)?b:0), 0);
+  }
+  const v = Number(fields.nombre_d_eleves);
+  if (Number.isFinite(v)) return v;
+  return readEffectifField(fields);
+}
+
+async function getEffectifsHistory({ uai, type, rows = 1000, ttlMs } = {}) {
+  let dataset, refineKey;
+  const t = String(type || '').toLowerCase();
+  if (t === 'college') { dataset = DS.effectifs_college; refineKey = 'numero_college'; }
+  else if (t === 'lycee_gt' || t === 'lycee' || t === 'lycee_general' || t.includes('gt')) { dataset = DS.effectifs_lycee_gt; refineKey = 'numero_lycee'; }
+  else if (t === 'lycee_pro' || t.includes('pro')) { dataset = DS.effectifs_lycee_pro; refineKey = 'numero_lycee'; }
+  else { throw new Error('Unsupported effectifs type'); }
+
+  const params = { rows };
+  params[`refine.${refineKey}`] = uai;
+
+  const data = await callDataset(dataset, params, { ttlMs });
+  const records = data?.records || [];
+
+  const byYear = new Map();
+  for (const rec of records) {
+    const f = rec.fields || {};
+    const y = String(f.rentree_scolaire || '').trim();
+    if (!y) continue;
+    const eff = readTotalForRecord(dataset, f);
+    const prev = byYear.get(y) || 0;
+    if (eff > prev) byYear.set(y, eff);
+  }
+
+  const series = Array.from(byYear.entries())
+    .map(([year, total]) => ({ year, total }))
+    .sort((a,b) => parseInt(a.year,10) - parseInt(b.year,10));
+
+  const latest_year = series.length ? series[series.length - 1].year : null;
+  return { series, latest_year, dataset };
+}
+
+module.exports.getEffectifsHistory = getEffectifsHistory;

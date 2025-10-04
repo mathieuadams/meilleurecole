@@ -7,6 +7,7 @@ const {
   nearbyDirectory,
 } = require('../services/frOpendata');
 const { getEffectifsByType } = require('../services/frOpendata');
+const { getEffectifsHistory } = require('../services/frOpendata');
 
 // GET /api/fr/identity/:uai
 router.get('/identity/:uai', async (req, res) => {
@@ -68,5 +69,19 @@ router.get('/effectifs/:uai', async (req, res) => {
   } catch (e) {
     console.error('fr/effectifs error', e);
     res.status(500).json({ error: 'Effectifs indisponibles', message: e.message });
+  }
+});
+
+// GET /api/fr/effectifs/:uai/history?type=...
+router.get('/effectifs/:uai/history', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    const type = String(req.query.type || '').trim();
+    if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
+    const result = await getEffectifsHistory({ uai, type, ttlMs: 2 * 60 * 60 * 1000 });
+    res.json({ success: true, uai, type, ...result });
+  } catch (e) {
+    console.error('fr/effectifs history error', e);
+    res.status(500).json({ error: 'Historique des effectifs indisponible', message: e.message });
   }
 });

@@ -12,6 +12,13 @@
 (function(){
   function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
   let chart;
+  function detectType(s){
+    const te = (s.type_etablissement || s.type || '').toLowerCase();
+    if (te.includes('coll')) return 'college';
+    if (te.includes('pro')) return 'lycee_pro';
+    if (te.includes('lyc')) return 'lycee_gt';
+    return null;
+  }
   function renderChart(total, avg){
     const ctx = document.getElementById('frEnrolmentCanvas');
     if (!ctx || !window.Chart) return;
@@ -41,11 +48,7 @@
   }
   async function loadByLevel(s) {
     if (!s || !s.urn) return null;
-    const te = (s.type_etablissement || s.type || '').toLowerCase();
-    let type = null;
-    if (te.includes('coll')) type = 'college';
-    else if (te.includes('pro')) type = 'lycee_pro';
-    else if (te.includes('lyc')) type = 'lycee_gt';
+    const type = detectType(s);
     if (!type) return null;
     try {
       const resp = await fetch(`/api/fr/effectifs/${encodeURIComponent(s.urn)}?type=${type}`);
@@ -55,19 +58,30 @@
     } catch(_) { return null; }
   }
 
+  async function loadHistory(s){
+    if (!s || !s.urn) return null;
+    const type = detectType(s);
+    if (!type) return null;
+    try {
+      const resp = await fetch(`/api/fr/effectifs/${encodeURIComponent(s.urn)}/history?type=${type}`);
+      const data = await resp.json();
+      if (!data || !data.success) return null;
+      return data; // { series: [{year,total}], latest_year }
+    } catch(_) { return null; }
+  }
+
   function render(s){
     if(!s) return;
     const total = (s.enrolment_stats && s.enrolment_stats.total) || s.number_of_students || (s.demographics && s.demographics.total_students);
     if(total!=null) set('frTotalEleves', Number(total).toLocaleString('fr-FR'));
     const avg = s.enrolment_stats && s.enrolment_stats.departement_average;
     renderChart(total, avg);
-    // Fetch richer breakdown when available
-    loadByLevel(s).then((dataset) => {
-      if (!dataset || !dataset.by_level) return;
-      const ORDER = ['6e','5e','4e','3e','ULIS','SEGPA'];
-      const keys = Object.keys(dataset.by_level);
-      const labels = ORDER.filter(k => keys.includes(k)).concat(keys.filter(k => !ORDER.includes(k)));
-      const values = labels.map(k => dataset.by_level[k]);
+
+    // Try to render a line chart of total students by year
+    loadHistory(s).then((hist) => {
+      if (!hist || !Array.isArray(hist.series) || !hist.series.length) return;
+      const labels = hist.series.map(p => p.year);
+      const values = hist.series.map(p => p.total);
       const ctx = document.getElementById('frEnrolmentCanvas');
       if (!ctx || !window.Chart) return;
       if (window.Chart && typeof window.Chart.getChart === 'function') {
@@ -76,14 +90,18 @@
       }
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: `Effectifs (${dataset.year || ''})`, data: values, backgroundColor: '#2563eb' }] },
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Effectifs totaux', data: values, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.2, fill: true, pointRadius: 3 }] },
         options: { responsive: true, maintainAspectRatio: true, animation: false, resizeDelay: 0, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
       });
+      // If the total was missing, set it from the latest point
+      if (total==null) {
+        const last = hist.series[hist.series.length-1];
+        if (last && last.total!=null) set('frTotalEleves', Number(last.total).toLocaleString('fr-FR'));
+      }
     });
   }
   if(window.currentSchoolData) render(window.currentSchoolData);
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
 })();
 </script>
-
