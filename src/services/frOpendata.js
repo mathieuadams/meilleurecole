@@ -16,6 +16,7 @@ const DS = {
   ips_lycees_legacy: 'fr-en-ips_lycees',
   dnb_by_etab: 'fr-en-dnb-par-etablissement',
   lycee_gt_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-general-et-technologique',
+  lycee_gt_v2: 'fr-en-indicateurs-de-resultat-des-lycees-gt_v2',
   lycee_pro_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-professionnels',
 };
 
@@ -487,6 +488,32 @@ async function getCollegeResults({ uai, ttlMs } = {}) {
 }
 
 async function getLyceeGTResults({ uai, ttlMs } = {}) {
+  // Try the v2 dataset first (preferred)
+  const tryV2 = async () => {
+    const data = await callDataset(DS.lycee_gt_v2, { rows: 100, [`refine.uai`]: uai }, { ttlMs });
+    const recs = data?.records || [];
+    let chosen = null; let chosenYear = null;
+    for (const r of recs) {
+      const f = r.fields || {};
+      const year = parseInt(String(f.annee || '').match(/\d{4}/)?.[0] || '0', 10);
+      if (!chosen || year > chosenYear) { chosen = f; chosenYear = year; }
+    }
+    if (!chosen) return null;
+    const presents = num(chosen.presents_total ?? chosen.presents_gnle);
+    const successRate = num(chosen.taux_reu_total);
+    const mentionsRate = num(chosen.taux_men_total ?? chosen.taux_men_gnle);
+    return {
+      year: String(chosenYear),
+      summary: { presents, success_rate: successRate, mentions_rate: mentionsRate },
+      mentions_counts: null,
+      dataset: DS.lycee_gt_v2,
+    };
+  };
+
+  const v2 = await tryV2();
+  if (v2) return v2;
+
+  // Fallback to older indicators dataset
   const data = await callDataset(DS.lycee_gt_indicators, { rows: 100, [`refine.code_etablissement`]: uai }, { ttlMs });
   const recs = data?.records || [];
   let chosen = null; let chosenYear = null;
