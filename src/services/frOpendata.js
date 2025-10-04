@@ -7,6 +7,12 @@ const DS = {
   effectifs_college: 'fr-en-college-effectifs-niveau-sexe-lv',
   effectifs_lycee_gt: 'fr-en-lycee_gt-effectifs-niveau-sexe-lv',
   effectifs_lycee_pro: 'fr-en-lycee_pro-effectifs-niveau-sexe-lv',
+  ips_colleges_2023: 'fr-en-ips-colleges-ap2023',
+  ips_colleges_2022: 'fr-en-ips-colleges-ap2022',
+  ips_colleges_legacy: 'fr-en-ips_colleges',
+  ips_lycees_2023: 'fr-en-ips-lycees-ap2023',
+  ips_lycees_2022: 'fr-en-ips-lycees-ap2022',
+  ips_lycees_legacy: 'fr-en-ips_lycees',
 };
 
 // Simple in-memory cache with TTL
@@ -301,3 +307,56 @@ async function getEffectifsHistory({ uai, type, rows = 1000, ttlMs } = {}) {
 }
 
 module.exports.getEffectifsHistory = getEffectifsHistory;
+
+// ------------------------------ IPS (social index) -------------------------
+
+function parseIPSValue(fields) {
+  const v = fields?.ips ?? fields?.IPS ?? fields?.indice ?? null;
+  const n = Number(String(v).replace(',', '.'));
+  return Number.isFinite(n) ? Number(n.toFixed(1)) : null;
+}
+
+async function getIPS({ uai, type, rows = 5, ttlMs } = {}) {
+  const t = String(type || '').toLowerCase();
+  const datasets = t === 'college'
+    ? [DS.ips_colleges_2023, DS.ips_colleges_2022, DS.ips_colleges_legacy]
+    : [DS.ips_lycees_2023, DS.ips_lycees_2022, DS.ips_lycees_legacy];
+
+  let best = null; // { year, ips, national, academique, departemental }
+  for (const ds of datasets) {
+    try {
+      const data = await callDataset(ds, { rows, [`refine.uai`]: uai }, { ttlMs });
+      const recs = data?.records || [];
+      for (const rec of recs) {
+        const f = rec.fields || {};
+        const ips = parseIPSValue(f);
+        if (ips == null) continue;
+        const yearLabel = String(f.rentree_scolaire || '').trim();
+        const yearNum = parseInt((yearLabel.match(/\d{4}/) || [null])[0], 10);
+        const pickNum = (k) => {
+          const val = f[k] != null ? Number(String(f[k]).replace(',', '.')) : null;
+          return Number.isFinite(val) ? Number(val.toFixed(1)) : null;
+        };
+        const candidate = {
+          dataset: ds,
+          rentree_scolaire: yearLabel || null,
+          year: Number.isFinite(yearNum) ? yearNum : null,
+          ips,
+          ips_national: pickNum('ips_national'),
+          ips_academique: pickNum('ips_academique'),
+          ips_departemental: pickNum('ips_departemental'),
+        };
+        // Keep the most recent year
+        if (!best || ((candidate.year || 0) > (best.year || 0))) {
+          best = candidate;
+        }
+      }
+      if (best) break; // found something
+    } catch (e) {
+      // ignore and try next dataset
+    }
+  }
+  return best; // may be null if nothing found
+}
+
+module.exports.getIPS = getIPS;

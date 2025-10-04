@@ -8,6 +8,8 @@ const {
 } = require('../services/frOpendata');
 const { getEffectifsByType } = require('../services/frOpendata');
 const { getEffectifsHistory } = require('../services/frOpendata');
+const { getIPS } = require('../services/frOpendata');
+const { query } = require('../config/database');
 
 // GET /api/fr/identity/:uai
 router.get('/identity/:uai', async (req, res) => {
@@ -83,5 +85,70 @@ router.get('/effectifs/:uai/history', async (req, res) => {
   } catch (e) {
     console.error('fr/effectifs history error', e);
     res.status(500).json({ error: 'Historique des effectifs indisponible', message: e.message });
+  }
+});
+
+// GET /api/fr/context/:uai -> { ips: { value, year, ... }, rep_flag, rep_plus_flag, qpv_proximity }
+router.get('/context/:uai', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    if (!uai) return res.status(400).json({ error: 'UAI requis' });
+
+    // Try to infer type from DB if available (for IPS dataset choice)
+    let type = null;
+    try {
+      const { rows } = await query('SELECT type_etablissement, appartenance_education_prioritaire FROM fr_ecoles WHERE identifiant_de_l_etablissement = $1 LIMIT 1', [uai]);
+      if (rows && rows.length) {
+        const t = (rows[0].type_etablissement || '').toLowerCase();
+        if (t.includes('coll')) type = 'college';
+        else if (t.includes('lyc')) type = 'lycee';
+
+        // REP flags from DB text
+        const ap = String(rows[0].appartenance_education_prioritaire || '').toUpperCase();
+        var rep_plus_flag = ap.includes('REP+') || ap.includes('REP +');
+        var rep_flag = !rep_plus_flag && ap.includes('REP');
+        var contextFromDb = { rep_flag, rep_plus_flag };
+        // Build response progressively
+        var response = { success: true, uai, ...contextFromDb };
+
+        // IPS via open data
+        if (type) {
+          const ips = await getIPS({ uai, type, ttlMs: 6 * 60 * 60 * 1000 });
+          if (ips) {
+            response.ips = {
+              value: ips.ips,
+              year: ips.year,
+              rentree_scolaire: ips.rentree_scolaire,
+              national: ips.ips_national,
+              academique: ips.ips_academique,
+              departemental: ips.ips_departemental,
+            };
+          }
+        }
+
+        // QPV proximity not yet integrated: leave null for now
+        response.qpv_proximity = null;
+        return res.json(response);
+      }
+    } catch (e) {
+      // Ignore DB error and still try IPS via directory
+      console.warn('fr/context DB lookup failed:', e.message);
+    }
+
+    // Fallback: try IPS assuming college first, then lycee
+    let ips = await getIPS({ uai, type: 'college', ttlMs: 6 * 60 * 60 * 1000 });
+    if (!ips) ips = await getIPS({ uai, type: 'lycee', ttlMs: 6 * 60 * 60 * 1000 });
+    res.json({ success: true, uai, ips: ips ? {
+      value: ips.ips,
+      year: ips.year,
+      rentree_scolaire: ips.rentree_scolaire,
+      national: ips.ips_national,
+      academique: ips.ips_academique,
+      departemental: ips.ips_departemental,
+    } : null, rep_flag: null, rep_plus_flag: null, qpv_proximity: null });
+
+  } catch (e) {
+    console.error('fr/context error', e);
+    res.status(500).json({ error: 'Contexte social indisponible', message: e.message });
   }
 });

@@ -1,14 +1,14 @@
 <!-- fr-school-context.html -->
 <div class="section-card">
   <div class="section-header">
-    <h2 class="section-title">Contexte social & prioritA©</h2>
+    <h2 class="section-title">Contexte social & priorite</h2>
   </div>
   <div class="chip-grid" id="frContextChips">
-    <div class="chip"><span class="chip-label">IPS</span><span class="chip-value" id="chipIPS">—</span></div>
-    <div class="chip"><span class="chip-label">REP / REP+</span><span class="chip-value" id="chipREP">—</span></div>
-    <div class="chip"><span class="chip-label">ProximitA© QPV</span><span class="chip-value" id="chipQPV">—</span></div>
+    <div class="chip"><span class="chip-label">IPS</span><span class="chip-value" id="chipIPS">-</span></div>
+    <div class="chip"><span class="chip-label">REP / REP+</span><span class="chip-value" id="chipREP">-</span></div>
+    <div class="chip"><span class="chip-label">Proximite QPV</span><span class="chip-value" id="chipQPV">-</span></div>
   </div>
-  <p class="muted" id="frContextNote">Ces indicateurs seront complA©tA©s automatiquement dA¨s l'intA©gration des jeux de donnA©es IPS et A©ducation prioritaire.</p>
+  <p class="muted" id="frContextNote">Ces indicateurs sont alimentees automatiquement avec les jeux de donnees IPS et Education prioritaire.</p>
 </div>
 
 <style>
@@ -22,18 +22,19 @@
 <script>
 (function(){
   function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
-  function render(ctx){
-    // Placeholder until IPS / REP endpoints wired
-    if(!ctx) return;
-    if(ctx.ips) set('chipIPS', ctx.ips);
-    if(ctx.rep_flag!=null || ctx.rep_plus_flag!=null){
-      const label = ctx.rep_plus_flag ? 'REP+' : (ctx.rep_flag ? 'REP' : 'Non');
-      set('chipREP', label);
-    }
+  async function fetchContext(uai){
+    try{ const resp = await fetch('/api/fr/context/' + encodeURIComponent(uai)); if(!resp.ok) return null; return await resp.json(); }catch{ return null; }
+  }
+  async function render(data){
+    if(!data || !data.urn) return;
+    const ctx = await fetchContext(data.urn);
+    if(!ctx || !ctx.success) return;
+    if(ctx.ips && ctx.ips.value!=null) set('chipIPS', String(ctx.ips.value));
+    if(ctx.rep_plus_flag!=null || ctx.rep_flag!=null){ set('chipREP', ctx.rep_plus_flag ? 'REP+' : (ctx.rep_flag ? 'REP' : 'Non')); }
     if(ctx.qpv_proximity!=null) set('chipQPV', ctx.qpv_proximity ? 'Oui' : 'Non');
   }
   if(window.currentSchoolData) render(window.currentSchoolData);
-  window.addEventListener('schoolDataLoaded', e => render(e.detail));
+  window.addEventListener('schoolDataLoaded', function(e){ render(e.detail); });
 })();
 </script>
 
