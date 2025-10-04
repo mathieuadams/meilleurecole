@@ -184,7 +184,9 @@ async function getEffectifsByType({ uai, type, year, rows = 1000, ttlMs } = {}) 
   let dataset, refineKey;
   const t = String(type || '').toLowerCase();
   if (t === 'college') {
-    dataset = DS.effectifs_college; refineKey = 'uai';
+    dataset = DS.effectifs_college;
+    // The dataset uses 'numero_college' (not 'uai') for the UAI code
+    refineKey = 'numero_college';
   } else if (t === 'lycee_gt' || t === 'lycee' || t === 'lycee_general' || t.includes('gt')) {
     dataset = DS.effectifs_lycee_gt; refineKey = 'numero_lycee';
   } else if (t === 'lycee_pro' || t.includes('pro')) {
@@ -199,19 +201,46 @@ async function getEffectifsByType({ uai, type, year, rows = 1000, ttlMs } = {}) 
 
   const data = await callDataset(dataset, params, { ttlMs });
   const records = data?.records || [];
+
+  // Helper: pick the year to use (latest if none provided)
+  const allYears = records
+    .map(r => String(r?.fields?.rentree_scolaire || ''))
+    .filter(Boolean);
+  let chosenYear = year || (allYears.length ? String(allYears.map(y => parseInt(y, 10)).filter(Number.isFinite).sort((a,b)=>b-a)[0]) : null);
+
+  const yearRecords = chosenYear
+    ? records.filter(r => String(r?.fields?.rentree_scolaire) === String(chosenYear))
+    : records;
+
+  // Dataset-specific aggregation to avoid double counting repeated rows
+  if (t === 'college') {
+    // Values appear on every row for the year; take the maximum across rows.
+    const agg = { '6e': 0, '5e': 0, '4e': 0, '3e': 0, 'ULIS': 0, 'SEGPA': 0 };
+    let total = 0;
+    for (const rec of yearRecords) {
+      const f = rec.fields || {};
+      agg['6e'] = Math.max(agg['6e'], Number(f.nombre_total_de_6emes) || 0);
+      agg['5e'] = Math.max(agg['5e'], Number(f.nombre_total_de_5emes) || 0);
+      agg['4e'] = Math.max(agg['4e'], Number(f.nombre_total_de_4emes) || 0);
+      agg['3e'] = Math.max(agg['3e'], Number(f.nombre_total_de_3emes) || 0);
+      agg['ULIS'] = Math.max(agg['ULIS'], Number(f.nombre_d_eleves_total_ulis) || 0);
+      agg['SEGPA'] = Math.max(agg['SEGPA'], Number(f.nombre_d_eleves_total_segpa) || 0);
+      total = Math.max(total, Number(f.nombre_eleves_total) || 0);
+    }
+    if (!total) total = Object.values(agg).reduce((a,b)=>a+b,0);
+    return { total, by_level: agg, year: chosenYear, dataset };
+  }
+
+  // Generic fallback for other datasets: sum an 'effectif' field when present
   let total = 0;
   const byLevel = {};
-  let chosenYear = year || null;
-
-  for (const rec of records) {
+  for (const rec of yearRecords) {
     const f = rec.fields || {};
     const eff = readEffectifField(f);
     total += eff;
     const lvl = readNiveauLabel(f);
     byLevel[lvl] = (byLevel[lvl] || 0) + eff;
-    if (!chosenYear && f.rentree_scolaire) chosenYear = f.rentree_scolaire;
   }
-
   return { total, by_level: byLevel, year: chosenYear, dataset };
 }
 
