@@ -93,14 +93,15 @@ router.get('/resultats/:uai', async (req, res) => {
   try {
     const uai = String(req.params.uai || '').trim();
     const type = String(req.query.type || '').trim().toLowerCase();
+    const year = req.query.year ? String(req.query.year) : undefined;
     if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
 
     if (type === 'college') {
-      const r = await getCollegeResults({ uai, ttlMs: 2 * 60 * 60 * 1000 });
+      const r = await getCollegeResults({ uai, year, ttlMs: 2 * 60 * 60 * 1000 });
       return res.json({ success: true, uai, type, ...r });
     }
     if (type === 'lycee' || type === 'lycee_gt' || type.includes('gt')) {
-      const r = await getLyceeGTResults({ uai, ttlMs: 2 * 60 * 60 * 1000 });
+      const r = await getLyceeGTResults({ uai, year, ttlMs: 2 * 60 * 60 * 1000 });
       return res.json({ success: true, uai, type: 'lycee_gt', ...r });
     }
     return res.status(400).json({ error: 'Unsupported type for resultats' });

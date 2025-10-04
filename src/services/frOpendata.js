@@ -460,9 +460,12 @@ function num(v) {
   return Number.isFinite(n) ? n : null;
 }
 
-async function getCollegeResults({ uai, ttlMs } = {}) {
+async function getCollegeResults({ uai, year, ttlMs } = {}) {
   // Prefer value-added college indicators
-  const data = await callDataset(DS.college_value_added, { rows: 100, [`refine.uai`]: uai }, { ttlMs });
+  const params = { rows: 100 };
+  params[`refine.uai`] = uai;
+  if (year) params['refine.session'] = year;
+  const data = await callDataset(DS.college_value_added, params, { ttlMs });
   const recs = data?.records || [];
   let chosen = null; let chosenYear = null;
   for (const r of recs) {
@@ -493,10 +496,13 @@ async function getCollegeResults({ uai, ttlMs } = {}) {
   };
 }
 
-async function getLyceeGTResults({ uai, ttlMs } = {}) {
+async function getLyceeGTResults({ uai, year, ttlMs } = {}) {
   // Try the v2 dataset first (preferred)
   const tryV2 = async () => {
-    const data = await callDataset(DS.lycee_gt_v2, { rows: 100, [`refine.uai`]: uai }, { ttlMs });
+    const params = { rows: 100 };
+    params[`refine.uai`] = uai;
+    if (year) params['refine.annee'] = year;
+    const data = await callDataset(DS.lycee_gt_v2, params, { ttlMs });
     const recs = data?.records || [];
     let chosen = null; let chosenYear = null;
     for (const r of recs) {
@@ -520,7 +526,10 @@ async function getLyceeGTResults({ uai, ttlMs } = {}) {
   if (v2) return v2;
 
   // Fallback to older indicators dataset
-  const data = await callDataset(DS.lycee_gt_indicators, { rows: 100, [`refine.code_etablissement`]: uai }, { ttlMs });
+  const params2 = { rows: 100 };
+  params2[`refine.code_etablissement`] = uai;
+  if (year) params2['refine.annee'] = year;
+  const data = await callDataset(DS.lycee_gt_indicators, params2, { ttlMs });
   const recs = data?.records || [];
   let chosen = null; let chosenYear = null;
   for (const r of recs) {
