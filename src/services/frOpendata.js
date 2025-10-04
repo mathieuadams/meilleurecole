@@ -382,6 +382,7 @@ function normalizeAnnuaireRecord(rec) {
     adresse_2: f.adresse_2 || null,
     adresse_3: f.adresse_3 || null,
     code_postal: f.code_postal || null,
+    code_commune: f.code_commune || null,
     nom_commune: f.nom_commune || null,
   };
 }
@@ -396,6 +397,33 @@ async function getAnnuaireByUai(uai, { ttlMs } = {}) {
 }
 
 module.exports.getAnnuaireByUai = getAnnuaireByUai;
+
+// List all establishments in the same commune as a given UAI
+async function getCommuneSchools({ uai, rows = 200, ttlMs } = {}) {
+  const me = await getAnnuaireByUai(uai, { ttlMs });
+  if (!me) return { items: [], town: null };
+  const params = { rows };
+  if (me.code_commune) params['refine.code_commune'] = me.code_commune;
+  else if (me.nom_commune) params['refine.nom_commune'] = me.nom_commune;
+  if (me.code_postal) params['refine.code_postal'] = me.code_postal;
+
+  const data = await callDataset(DS.annuaire, params, { ttlMs });
+  const items = (data?.records || []).map(r => {
+    const f = r.fields || {};
+    return {
+      uai: f.identifiant_de_l_etablissement,
+      name: f.nom_etablissement,
+      type: f.type_etablissement,
+      statut: f.statut_public_prive,
+      latitude: f.latitude ?? r.geometry?.coordinates?.[1] ?? null,
+      longitude: f.longitude ?? r.geometry?.coordinates?.[0] ?? null,
+      address: [f.adresse_1, f.adresse_2, f.adresse_3].filter(Boolean).join(', '),
+    };
+  });
+  return { items, town: me.nom_commune, postcode: me.code_postal };
+}
+
+module.exports.getCommuneSchools = getCommuneSchools;
 
 // ------------------------------ Langues ------------------------------------
 

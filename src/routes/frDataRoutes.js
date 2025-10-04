@@ -10,6 +10,7 @@ const { getEffectifsByType } = require('../services/frOpendata');
 const { getEffectifsHistory } = require('../services/frOpendata');
 const { getIPS } = require('../services/frOpendata');
 const { getAnnuaireByUai } = require('../services/frOpendata');
+const { getCommuneSchools } = require('../services/frOpendata');
 const { getLanguagesByType } = require('../services/frOpendata');
 const { getCollegeResults, getLyceeGTResults } = require('../services/frOpendata');
 const { query } = require('../config/database');
@@ -70,6 +71,19 @@ router.get('/contacts/:uai', async (req, res) => {
   } catch (e) {
     console.error('fr/contacts error', e);
     res.status(500).json({ error: 'Coordonnees indisponibles', message: e.message });
+  }
+});
+
+// GET /api/fr/commune/:uai/schools -> list all establishments in same commune
+router.get('/commune/:uai/schools', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    if (!uai) return res.status(400).json({ error: 'UAI requis' });
+    const result = await getCommuneSchools({ uai, ttlMs: 60 * 60 * 1000 });
+    res.json({ success: true, uai, ...result });
+  } catch (e) {
+    console.error('fr/commune schools error', e);
+    res.status(500).json({ error: 'Liste introuvable', message: e.message });
   }
 });
 

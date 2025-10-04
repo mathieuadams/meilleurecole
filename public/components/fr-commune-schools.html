@@ -1,0 +1,75 @@
+<!-- fr-commune-schools.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Etablissements de la commune <span id="frCommuneName"></span></h2>
+  </div>
+  <div class="commune-wrap">
+    <div id="frCommuneMap" class="commune-map"></div>
+    <div class="commune-list">
+      <div class="list-title" id="frCommuneListTitle">Liste des etablissements</div>
+      <div id="frCommuneList"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.commune-wrap{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
+@media(max-width:900px){.commune-wrap{grid-template-columns:1fr}}
+.commune-map{height:380px;min-height:300px;border:1px solid #e5e7eb;border-radius:8px;background:#f3f4f6}
+.commune-list{padding:.5rem}
+.list-title{font-weight:600;margin-bottom:.5rem}
+.commune-item{display:flex;align-items:start;gap:.5rem;padding:.375rem 0;border-bottom:1px dashed #eee}
+.commune-item:last-child{border-bottom:none}
+.commune-item .icon{color:#2563eb}
+.commune-item a{color:#111827;text-decoration:none}
+.commune-item a:hover{text-decoration:underline}
+</style>
+
+<script>
+(function(){
+  function esc(s){ return String(s??'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+  function schoolUrl(uai){ return `/school/${encodeURIComponent(uai)}`; }
+  async function loadCommune(uai){
+    try{ const r = await fetch(`/api/fr/commune/${encodeURIComponent(uai)}/schools`); return await r.json(); }catch{ return null; }
+  }
+  function renderList(items){
+    const el = document.getElementById('frCommuneList'); if(!el) return;
+    el.innerHTML = (items||[]).map(s=>`
+      <div class="commune-item">
+        <div class="icon">🏫</div>
+        <a href="${esc(schoolUrl(s.uai))}">${esc(s.name)}</a>
+      </div>`).join('');
+  }
+  function renderMap(items, center){
+    const mapEl = document.getElementById('frCommuneMap'); if(!mapEl || !window.L) return;
+    const map = L.map(mapEl).setView([center.lat, center.lon], 14);
+    if (window.getDefaultTileLayer) window.getDefaultTileLayer(map); else L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap, © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+    const bounds = [];
+    (items||[]).forEach(s=>{
+      if (s.latitude!=null && s.longitude!=null){
+        const m=L.marker([s.latitude, s.longitude]).addTo(map);
+        m.bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(s.type||'')}<br><a href='${esc(schoolUrl(s.uai))}'>Voir la fiche</a>`);
+        bounds.push([s.latitude, s.longitude]);
+      }
+    });
+    if (bounds.length) map.fitBounds(bounds, { padding: [20,20] });
+  }
+  async function render(s){
+    if(!s||!s.urn) return;
+    const data = await loadCommune(s.urn);
+    if(!data || !data.success) return;
+    const items = (data.items||[]).sort((a,b)=> String(a.name).localeCompare(String(b.name)));
+    const town = data.town || s.address?.town || '';
+    const title = document.getElementById('frCommuneListTitle');
+    const nameEl = document.getElementById('frCommuneName');
+    if (nameEl) nameEl.textContent = town || '';
+    if (title) title.textContent = `Liste des ${items.length} etablissements de la commune`;
+    renderList(items);
+    const center = { lat: s.latitude ?? items[0]?.latitude ?? 46.7, lon: s.longitude ?? items[0]?.longitude ?? 2.4 };
+    renderMap(items, center);
+  }
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e=>render(e.detail));
+})();
+</script>
+
