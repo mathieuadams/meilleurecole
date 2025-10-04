@@ -39,21 +39,33 @@
 
   function renderCollege(data){
     const y = data.year || '';
-    const pres = data.summary?.presents;
-    const taux = data.summary?.success_rate;
-    const m = data.mentions||{};
+    const s = data.summary || {};
+    const presence = s.presence_rate;
+    const success = s.success_rate;
+    const access = s.access_rate;
+    const mentionsTotal = s.mentions_total;
+    const va = s.value_added_success;
     setWrap(`
+      <div class="metric-card" style="display:flex;align-items:center;justify-content:center;gap:1rem;border-color:#e5e7eb;margin-bottom:1rem">
+        <div style="font-size:2rem">👥</div>
+        <div><div class="metric-value" style="font-size:2.25rem">${fmtPct(presence)}</div><div class="metric-sublabel">% des eleves presents a l'examen</div></div>
+      </div>
       <div class="results-grid">
-        <div class="metric-card"><div class="metric-title">Presents</div><div class="metric-value">${fmtInt(pres)}</div><div class="metric-sublabel">DNB ${y}</div></div>
-        <div class="metric-card"><div class="metric-title">Taux de reussite</div><div class="metric-value">${fmtPct(taux)}</div><div class="metric-sublabel">DNB ${y}</div></div>
         <div class="metric-card">
-          <div class="metric-title">Mentions</div>
-          <div class="mentions-row">
-            <span class="mention-chip"><strong>AB</strong> ${fmtInt(m.ab)}</span>
-            <span class="mention-chip"><strong>Bien</strong> ${fmtInt(m.bien)}</span>
-            <span class="mention-chip"><strong>TB</strong> ${fmtInt(m.tb)}</span>
+          <div class="metric-title">taux de reussite global</div>
+          <div class="metric-value">${fmtPct(success)}</div>
+          <div class="metric-sublabel">DNB ${y}</div>
+          <div style="height:1px;background:#e5e7eb;margin:.75rem 0"></div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.25rem">📈</span>
+            <div>
+              <div class="metric-value" style="font-size:1.25rem">${(va==null||isNaN(va))? '—' : va}</div>
+              <div class="metric-sublabel">valeur ajoutee du taux de reussite global</div>
+            </div>
           </div>
         </div>
+        <div class="metric-card"><div class="metric-title">taux d'acces</div><div class="metric-value">${fmtPct(access)}</div><div class="metric-sublabel">DNB ${y}</div></div>
+        <div class="metric-card"><div class="metric-title">mentions</div><div class="metric-value">${fmtInt(mentionsTotal)}</div><div class="metric-sublabel">DNB ${y}</div></div>
       </div>
       <div class="muted">Source: ${data.dataset || 'MENJS'} — Session ${y}</div>
     `);
@@ -96,4 +108,3 @@
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
 })();
 </script>
-

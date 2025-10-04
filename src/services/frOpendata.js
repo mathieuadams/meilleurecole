@@ -15,6 +15,7 @@ const DS = {
   ips_lycees_2022: 'fr-en-ips-lycees-ap2022',
   ips_lycees_legacy: 'fr-en-ips_lycees',
   dnb_by_etab: 'fr-en-dnb-par-etablissement',
+  college_value_added: 'fr-en-indicateurs-valeur-ajoutee-colleges',
   lycee_gt_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-general-et-technologique',
   lycee_gt_v2: 'fr-en-indicateurs-de-resultat-des-lycees-gt_v2',
   lycee_pro_indicators: 'fr-en-indicateurs-de-resultat-des-lycees-denseignement-professionnels',
@@ -460,9 +461,9 @@ function num(v) {
 }
 
 async function getCollegeResults({ uai, ttlMs } = {}) {
-  const data = await callDataset(DS.dnb_by_etab, { rows: 100, [`refine.numero_d_etablissement`]: uai }, { ttlMs });
+  // Prefer value-added college indicators
+  const data = await callDataset(DS.college_value_added, { rows: 100, [`refine.uai`]: uai }, { ttlMs });
   const recs = data?.records || [];
-  // choose latest session numeric
   let chosen = null; let chosenYear = null;
   for (const r of recs) {
     const f = r.fields || {};
@@ -470,20 +471,25 @@ async function getCollegeResults({ uai, ttlMs } = {}) {
     if (!chosen || year > chosenYear) { chosen = f; chosenYear = year; }
   }
   if (!chosen) return { year: null, summary: null };
-  const presents = num(chosen.presents);
-  const admis = num(chosen.admis);
-  const taux = num(chosen.taux_de_reussite);
-  const mentions = {
-    sans: num(chosen.admis_sans_mention),
-    ab: num(chosen.nombre_d_admis_mention_ab),
-    bien: num(chosen.admis_mention_bien),
-    tb: num(chosen.admis_mention_tres_bien),
-  };
+  const presenceRate = num(chosen.part_presents_3eme_ordinaire_total);
+  const successRate = num(chosen.taux_de_reussite_g);
+  const accessRate = num(chosen.taux_d_acces_6eme_3eme);
+  const mentionsTotal = num(chosen.nb_mentions_global_g);
+  const valueAdded = num(chosen.va_du_taux_de_reussite_g);
+  const ab = num(chosen.nb_mentions_ab_g);
+  const bien = num(chosen.nb_mentions_b_g);
+  const tb = num(chosen.nb_mentions_tb_g);
   return {
     year: String(chosenYear),
-    summary: { presents, admis, success_rate: taux },
-    mentions,
-    dataset: DS.dnb_by_etab,
+    summary: {
+      presence_rate: presenceRate,
+      success_rate: successRate,
+      access_rate: accessRate,
+      mentions_total: mentionsTotal,
+      value_added_success: valueAdded,
+    },
+    mentions: { ab, bien, tb },
+    dataset: DS.college_value_added,
   };
 }
 
