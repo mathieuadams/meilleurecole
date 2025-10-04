@@ -12,6 +12,24 @@
 (function(){
   function set(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
   let chart;
+  function ensureChartJs(){
+    if (window.Chart) return Promise.resolve();
+    return new Promise((resolve) => {
+      const src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+      const tag = document.querySelector(`script[src="${src}"]`);
+      const done = () => resolve();
+      if (window.Chart) return resolve();
+      if (tag) {
+        tag.addEventListener('load', done, { once: true });
+        // Also poll in case load already fired
+        const t = setInterval(() => { if (window.Chart) { clearInterval(t); resolve(); } }, 50);
+        setTimeout(() => clearInterval(t), 3000);
+      } else {
+        const s = document.createElement('script');
+        s.src = src; s.onload = done; document.body.appendChild(s);
+      }
+    });
+  }
   function detectType(s){
     const te = (s.type_etablissement || s.type || '').toLowerCase();
     if (te.includes('coll')) return 'college';
@@ -19,9 +37,10 @@
     if (te.includes('lyc')) return 'lycee_gt';
     return null;
   }
-  function renderChart(total, avg){
+  async function renderChart(total, avg){
     const ctx = document.getElementById('frEnrolmentCanvas');
-    if (!ctx || !window.Chart) return;
+    if (!ctx) return;
+    await ensureChartJs();
     // Avoid stacking multiple charts on same canvas
     if (window.Chart && typeof window.Chart.getChart === 'function') {
       const existing = window.Chart.getChart(ctx);
@@ -80,25 +99,27 @@
     // Try to render a line chart of total students by year
     loadHistory(s).then((hist) => {
       if (!hist || !Array.isArray(hist.series) || !hist.series.length) return;
-      const labels = hist.series.map(p => p.year);
-      const values = hist.series.map(p => p.total);
-      const ctx = document.getElementById('frEnrolmentCanvas');
-      if (!ctx || !window.Chart) return;
-      if (window.Chart && typeof window.Chart.getChart === 'function') {
-        const existing = window.Chart.getChart(ctx);
-        if (existing) existing.destroy();
-      }
-      if (chart) chart.destroy();
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets: [{ label: 'Effectifs totaux', data: values, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.2, fill: true, pointRadius: 3 }] },
-        options: { responsive: true, maintainAspectRatio: true, animation: false, resizeDelay: 0, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-      });
-      // If the total was missing, set it from the latest point
+      // If summary missing, fill it first
       if (total==null) {
         const last = hist.series[hist.series.length-1];
         if (last && last.total!=null) set('frTotalEleves', Number(last.total).toLocaleString('fr-FR'));
       }
+      const labels = hist.series.map(p => p.year);
+      const values = hist.series.map(p => p.total);
+      const ctx = document.getElementById('frEnrolmentCanvas');
+      if (!ctx) return;
+      ensureChartJs().then(() => {
+        if (window.Chart && typeof window.Chart.getChart === 'function') {
+          const existing = window.Chart.getChart(ctx);
+          if (existing) existing.destroy();
+        }
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets: [{ label: 'Effectifs totaux', data: values, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.2, fill: true, pointRadius: 3 }] },
+          options: { responsive: true, maintainAspectRatio: true, animation: false, resizeDelay: 0, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+      });
     });
   }
   if(window.currentSchoolData) render(window.currentSchoolData);
