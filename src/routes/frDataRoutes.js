@@ -10,6 +10,7 @@ const { getEffectifsByType } = require('../services/frOpendata');
 const { getEffectifsHistory } = require('../services/frOpendata');
 const { getIPS } = require('../services/frOpendata');
 const { getAnnuaireByUai } = require('../services/frOpendata');
+const { getLanguagesByType } = require('../services/frOpendata');
 const { query } = require('../config/database');
 
 // GET /api/fr/identity/:uai
@@ -68,6 +69,21 @@ router.get('/contacts/:uai', async (req, res) => {
   } catch (e) {
     console.error('fr/contacts error', e);
     res.status(500).json({ error: 'Coordonnees indisponibles', message: e.message });
+  }
+});
+
+// GET /api/fr/langues/:uai?type=college&year=2024
+router.get('/langues/:uai', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    const type = String(req.query.type || '').trim();
+    const year = req.query.year ? String(req.query.year) : undefined;
+    if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
+    const result = await getLanguagesByType({ uai, type, year, ttlMs: 2 * 60 * 60 * 1000 });
+    res.json({ success: true, uai, type, ...result });
+  } catch (e) {
+    console.error('fr/langues error', e);
+    res.status(500).json({ error: 'Langues indisponibles', message: e.message });
   }
 });
 

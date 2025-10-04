@@ -391,3 +391,58 @@ async function getAnnuaireByUai(uai, { ttlMs } = {}) {
 }
 
 module.exports.getAnnuaireByUai = getAnnuaireByUai;
+
+// ------------------------------ Langues ------------------------------------
+
+function accumulateLanguagesFromFields(fields, buckets) {
+  const names = Object.keys(fields || {});
+  for (const key of names) {
+    const m = key.match(/lv(1|2)_(anglais|allemand|espagnol|italien|autres_langues)/i);
+    if (!m) continue;
+    const lv = m[1] === '1' ? 'lv1' : 'lv2';
+    const lang = m[2].toLowerCase();
+    const val = Number(fields[key]);
+    if (Number.isFinite(val) && val > 0) {
+      buckets[lv][lang] = (buckets[lv][lang] || 0) + val;
+    }
+  }
+}
+
+async function getLanguagesByType({ uai, type, year, rows = 1000, ttlMs } = {}) {
+  let dataset, refineKey;
+  const t = String(type || '').toLowerCase();
+  if (t === 'college') { dataset = DS.effectifs_college; refineKey = 'numero_college'; }
+  else if (t === 'lycee_gt' || t === 'lycee' || t === 'lycee_general' || t.includes('gt')) { dataset = DS.effectifs_lycee_gt; refineKey = 'numero_lycee'; }
+  else if (t === 'lycee_pro' || t.includes('pro')) { dataset = DS.effectifs_lycee_pro; refineKey = 'numero_lycee'; }
+  else { throw new Error('Unsupported langues type'); }
+
+  const params = { rows };
+  params[`refine.${refineKey}`] = uai;
+  if (year) params['refine.rentree_scolaire'] = year;
+
+  const data = await callDataset(dataset, params, { ttlMs });
+  const records = data?.records || [];
+  const allYears = records.map(r => String(r?.fields?.rentree_scolaire || '')).filter(Boolean);
+  let chosenYear = year || (allYears.length ? String(allYears.map(y => parseInt(y, 10)).filter(Number.isFinite).sort((a,b)=>b-a)[0]) : null);
+  const yearRecords = chosenYear ? records.filter(r => String(r?.fields?.rentree_scolaire) === String(chosenYear)) : records;
+
+  const buckets = { lv1: {}, lv2: {} };
+  for (const rec of yearRecords) accumulateLanguagesFromFields(rec.fields || {}, buckets);
+
+  const pretty = {
+    anglais: 'Anglais', allemand: 'Allemand', espagnol: 'Espagnol', italien: 'Italien', autres_langues: 'Autres langues'
+  };
+  const lv1 = Object.keys(buckets.lv1).sort().map(k => ({ key: k, name: pretty[k] || k, total: buckets.lv1[k] }));
+  const lv2 = Object.keys(buckets.lv2).sort().map(k => ({ key: k, name: pretty[k] || k, total: buckets.lv2[k] }));
+
+  return {
+    success: true,
+    dataset,
+    year: chosenYear,
+    lv1: lv1.map(x => x.name),
+    lv2: lv2.map(x => x.name),
+    totals: { lv1, lv2 }
+  };
+}
+
+module.exports.getLanguagesByType = getLanguagesByType;

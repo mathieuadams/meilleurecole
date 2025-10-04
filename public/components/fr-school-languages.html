@@ -1,0 +1,59 @@
+<!-- fr-school-languages.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Langues proposees</h2>
+  </div>
+  <div id="frLangContent">
+    <div class="lang-grid">
+      <div>
+        <div class="lang-title">LV1</div>
+        <div id="frLangLV1" class="chip-grid"></div>
+      </div>
+      <div>
+        <div class="lang-title">LV2</div>
+        <div id="frLangLV2" class="chip-grid"></div>
+      </div>
+    </div>
+    <div class="muted" id="frLangYear"></div>
+  </div>
+</div>
+
+<style>
+.lang-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:.5rem}
+.chip-grid{display:flex;gap:.5rem;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;padding:.25rem .5rem;border:1px solid #e5e7eb;border-radius:999px;background:#fff;font-size:.875rem}
+.lang-title{font-weight:600;color:#374151;margin-bottom:.25rem}
+.muted{margin-top:.75rem;color:#6b7280;font-size:.875rem}
+</style>
+
+<script>
+(function(){
+  function chip(label){ return `<span class="chip">${label}</span>`; }
+  function detectType(s){
+    const te = (s.type_etablissement || s.type || '').toLowerCase();
+    if (te.includes('coll')) return 'college';
+    if (te.includes('pro')) return 'lycee_pro';
+    if (te.includes('lyc')) return 'lycee_gt';
+    return null;
+  }
+  async function loadLangues(s){
+    const type = detectType(s); if(!type) return null;
+    try{ const r = await fetch(`/api/fr/langues/${encodeURIComponent(s.urn)}?type=${type}`); return await r.json(); }catch{ return null; }
+  }
+  async function render(s){
+    if(!s||!s.urn) return;
+    const data = await loadLangues(s);
+    if(!data || !data.success) return;
+    const lv1 = Array.isArray(data.lv1) && data.lv1.length ? data.lv1 : ['—'];
+    const lv2 = Array.isArray(data.lv2) && data.lv2.length ? data.lv2 : ['—'];
+    const lv1El = document.getElementById('frLangLV1');
+    const lv2El = document.getElementById('frLangLV2');
+    if (lv1El) lv1El.innerHTML = lv1.map(chip).join('');
+    if (lv2El) lv2El.innerHTML = lv2.map(chip).join('');
+    const yr = document.getElementById('frLangYear'); if (yr && data.year) yr.textContent = `Rentee scolaire: ${data.year}`;
+  }
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e=>render(e.detail));
+})();
+</script>
+
