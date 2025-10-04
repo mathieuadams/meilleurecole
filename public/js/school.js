@@ -594,7 +594,7 @@ function updateContactInfo(school) {
       emailEl.textContent = school.email;
       emailEl.href = `mailto:${school.email}`;
     } else {
-      emailEl.textContent = '�?"';
+      emailEl.textContent = '-';
       emailEl.removeAttribute('href');
     }
   }
@@ -606,7 +606,8 @@ function updateContactInfo(school) {
       const url = school.website.startsWith('http') ? school.website : `https://${school.website}`;
       webEl.textContent = school.website;
       webEl.href = url;
-    } else {\n      webEl.textContent = '-';
+    } else {
+      webEl.textContent = '-';
       webEl.removeAttribute('href');
     }
   }
