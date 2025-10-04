@@ -3,8 +3,8 @@
   <div class="section-header">
     <h2 class="section-title">Effectifs</h2>
   </div>
-  <div id="frEnrolmentSummary" class="enrol-summary">Effectif total : <strong id="frTotalEleves">—</strong></div>
-  <canvas id="frEnrolmentCanvas" height="160" style="max-width:100%; margin-top: 1rem;"></canvas>
+  <div id="frEnrolmentSummary" class="enrol-summary">Effectif total : <strong id="frTotalEleves">-</strong></div>
+  <canvas id="frEnrolmentCanvas" height="200" style="max-width:100%; height:220px; margin-top: 1rem;"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -15,17 +15,24 @@
   function renderChart(total, avg){
     const ctx = document.getElementById('frEnrolmentCanvas');
     if (!ctx || !window.Chart) return;
+    // Avoid stacking multiple charts on same canvas
+    if (window.Chart && typeof window.Chart.getChart === 'function') {
+      const existing = window.Chart.getChart(ctx);
+      if (existing) existing.destroy();
+    }
     const data = {
-      labels: ['Etablissement', 'Moyenne dépt.'],
+      labels: ['Etablissement', 'Moyenne departement'],
       datasets: [{
-        label: 'Nombre d\'élèves',
+        label: 'Nombre d\'eleves',
         data: [total ?? null, avg ?? null],
         backgroundColor: ['#2563eb', '#9ca3af']
       }]
     };
     const options = {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      animation: false,
+      resizeDelay: 0,
       plugins: { legend: { display: false } },
       scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     };
@@ -57,15 +64,21 @@
     // Fetch richer breakdown when available
     loadByLevel(s).then((dataset) => {
       if (!dataset || !dataset.by_level) return;
-      const labels = Object.keys(dataset.by_level);
+      const ORDER = ['6e','5e','4e','3e','ULIS','SEGPA'];
+      const keys = Object.keys(dataset.by_level);
+      const labels = ORDER.filter(k => keys.includes(k)).concat(keys.filter(k => !ORDER.includes(k)));
       const values = labels.map(k => dataset.by_level[k]);
       const ctx = document.getElementById('frEnrolmentCanvas');
       if (!ctx || !window.Chart) return;
+      if (window.Chart && typeof window.Chart.getChart === 'function') {
+        const existing = window.Chart.getChart(ctx);
+        if (existing) existing.destroy();
+      }
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets: [{ label: `Effectifs (${dataset.year || ''})`, data: values, backgroundColor: '#2563eb' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        options: { responsive: true, maintainAspectRatio: true, animation: false, resizeDelay: 0, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
       });
     });
   }
@@ -73,3 +86,4 @@
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
 })();
 </script>
+

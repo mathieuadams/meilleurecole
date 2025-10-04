@@ -125,16 +125,18 @@
       // 2) Execute any <script> tags from the injected fragment
       const scripts = Array.from(target.querySelectorAll('script'));
       for (const old of scripts) {
+        // Skip adding duplicate external scripts (e.g., Chart.js) if already present
+        if (old.src && document.querySelector(`script[src="${old.src}"]`)) {
+          old.parentNode.removeChild(old);
+          continue;
+        }
         const s = document.createElement('script');
-        // preserve inline vs external scripts
         if (old.src) s.src = old.src;
         if (old.type) s.type = old.type;
         if (old.noModule) s.noModule = true;
         if (old.defer) s.defer = true;
         if (!old.src) s.textContent = old.textContent;
-        // execute by adding to DOM
         document.body.appendChild(s);
-        // remove the original to avoid duplicates
         old.parentNode.removeChild(old);
       }
     } catch (e) {
