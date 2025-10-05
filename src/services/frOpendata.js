@@ -399,13 +399,15 @@ async function getAnnuaireByUai(uai, { ttlMs } = {}) {
 module.exports.getAnnuaireByUai = getAnnuaireByUai;
 
 // List all establishments in the same commune as a given UAI
-async function getCommuneSchools({ uai, rows = 200, ttlMs } = {}) {
+async function getCommuneSchools({ uai, page = 1, pageSize = 10, ttlMs } = {}) {
   const me = await getAnnuaireByUai(uai, { ttlMs });
-  if (!me) return { items: [], town: null };
-  const params = { rows };
+  if (!me) return { items: [], town: null, total: 0, page, page_size: pageSize, total_pages: 0 };
+  const params = { rows: Math.max(1, Math.min(100, Number(pageSize) || 10)) };
+  // Filter by commune (code_commune preferred). Do NOT filter by code_postal to include all postcodes of the commune.
   if (me.code_commune) params['refine.code_commune'] = me.code_commune;
   else if (me.nom_commune) params['refine.nom_commune'] = me.nom_commune;
-  if (me.code_postal) params['refine.code_postal'] = me.code_postal;
+  const start = Math.max(0, (Number(page) - 1) * params.rows);
+  params.start = start;
 
   const data = await callDataset(DS.annuaire, params, { ttlMs });
   const items = (data?.records || []).map(r => {
@@ -420,7 +422,9 @@ async function getCommuneSchools({ uai, rows = 200, ttlMs } = {}) {
       address: [f.adresse_1, f.adresse_2, f.adresse_3].filter(Boolean).join(', '),
     };
   });
-  return { items, town: me.nom_commune, postcode: me.code_postal };
+  const total = Number(data?.nhits || 0);
+  const totalPages = Math.max(1, Math.ceil(total / params.rows));
+  return { items, town: me.nom_commune, postcode: me.code_postal, total, page: Number(page), page_size: params.rows, total_pages: totalPages };
 }
 
 module.exports.getCommuneSchools = getCommuneSchools;

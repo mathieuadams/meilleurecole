@@ -80,7 +80,9 @@ router.get('/commune/:uai/schools', async (req, res) => {
   try {
     const uai = String(req.params.uai || '').trim();
     if (!uai) return res.status(400).json({ error: 'UAI requis' });
-    const result = await getCommuneSchools({ uai, ttlMs: 60 * 60 * 1000 });
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const pageSize = req.query.page_size ? Number(req.query.page_size) : 10;
+    const result = await getCommuneSchools({ uai, page, pageSize, ttlMs: 60 * 60 * 1000 });
     res.json({ success: true, uai, ...result });
   } catch (e) {
     console.error('fr/commune schools error', e);

@@ -8,6 +8,7 @@
     <div class="commune-list">
       <div class="list-title" id="frCommuneListTitle">Liste des etablissements</div>
       <div id="frCommuneList"></div>
+      <div id="frCommunePager" class="pager"></div>
     </div>
   </div>
 </div>
@@ -23,14 +24,18 @@
 .commune-item .icon{color:#2563eb}
 .commune-item a{color:#111827;text-decoration:none}
 .commune-item a:hover{text-decoration:underline}
+.pager{display:flex;gap:.5rem;align-items:center;margin-top:.75rem}
+.pager button{padding:.25rem .5rem;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer}
+.pager button[disabled]{opacity:.5;cursor:not-allowed}
+.pager .meta{color:#6b7280;font-size:.85rem;margin-left:.5rem}
 </style>
 
 <script>
 (function(){
   function esc(s){ return String(s??'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
   function schoolUrl(uai){ return `/school/${encodeURIComponent(uai)}`; }
-  async function loadCommune(uai){
-    try{ const r = await fetch(`/api/fr/commune/${encodeURIComponent(uai)}/schools`); return await r.json(); }catch{ return null; }
+  async function loadCommune(uai, page){
+    try{ const r = await fetch(`/api/fr/commune/${encodeURIComponent(uai)}/schools?page=${page||1}&page_size=10`); return await r.json(); }catch{ return null; }
   }
   function renderList(items){
     const el = document.getElementById('frCommuneList'); if(!el) return;
@@ -54,22 +59,39 @@
     });
     if (bounds.length) map.fitBounds(bounds, { padding: [20,20] });
   }
-  async function render(s){
-    if(!s||!s.urn) return;
-    const data = await loadCommune(s.urn);
+  function renderPager(uai, page, totalPages, total){
+    const el = document.getElementById('frCommunePager'); if(!el) return;
+    const prevDis = page<=1 ? 'disabled' : '';
+    const nextDis = page>=totalPages ? 'disabled' : '';
+    el.innerHTML = `
+      <div class="pager">
+        <button ${prevDis} id="frPagePrev">Prev</button>
+        <span>Page ${page} / ${totalPages}</span>
+        <button ${nextDis} id="frPageNext">Next</button>
+        <span class="meta">Total: ${total}</span>
+      </div>`;
+    const prev=document.getElementById('frPagePrev'); const next=document.getElementById('frPageNext');
+    if (prev) prev.onclick = ()=> fetchAndRender(uai, page-1);
+    if (next) next.onclick = ()=> fetchAndRender(uai, page+1);
+  }
+
+  async function fetchAndRender(uai, page){
+    const data = await loadCommune(uai, page);
     if(!data || !data.success) return;
     const items = (data.items||[]).sort((a,b)=> String(a.name).localeCompare(String(b.name)));
-    const town = data.town || s.address?.town || '';
+    const town = data.town || '';
     const title = document.getElementById('frCommuneListTitle');
     const nameEl = document.getElementById('frCommuneName');
     if (nameEl) nameEl.textContent = town || '';
-    if (title) title.textContent = `Liste des ${items.length} etablissements de la commune`;
+    if (title) title.textContent = `Liste des ${data.total||items.length} etablissements de la commune`;
     renderList(items);
-    const center = { lat: s.latitude ?? items[0]?.latitude ?? 46.7, lon: s.longitude ?? items[0]?.longitude ?? 2.4 };
+    const center = { lat: window.currentSchoolData?.latitude ?? items[0]?.latitude ?? 46.7, lon: window.currentSchoolData?.longitude ?? items[0]?.longitude ?? 2.4 };
     renderMap(items, center);
+    renderPager(uai, data.page||1, data.total_pages||1, data.total||items.length);
   }
+
+  function render(s){ if(!s||!s.urn) return; fetchAndRender(s.urn, 1); }
   if(window.currentSchoolData) render(window.currentSchoolData);
   window.addEventListener('schoolDataLoaded', e=>render(e.detail));
 })();
 </script>
-
