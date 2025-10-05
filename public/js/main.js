@@ -635,16 +635,19 @@ async function loadSchoolData(urn) {
             updateSchoolProfile(schoolData.school);
         }
         
-        // Load performance data
-        const perfData = await getSchoolPerformance(urn);
-        if (perfData.success && perfData.performance) {
-            updatePerformanceData(perfData.performance);
-        }
-        
-        // Load nearby schools
-        const nearbyData = await getNearbySchools(urn);
-        if (nearbyData.success && nearbyData.nearby_schools) {
-            updateNearbySchools(nearbyData.nearby_schools);
+        // For UK schools only (numeric URN), load UK-specific endpoints
+        const isNumericUrn = /^\d+$/.test(String(urn));
+        if (isNumericUrn) {
+            // Load performance data
+            const perfData = await getSchoolPerformance(urn);
+            if (perfData.success && perfData.performance) {
+                updatePerformanceData(perfData.performance);
+            }
+            // Load nearby schools
+            const nearbyData = await getNearbySchools(urn);
+            if (nearbyData.success && nearbyData.nearby_schools) {
+                updateNearbySchools(nearbyData.nearby_schools);
+            }
         }
     } catch (error) {
         console.error('Erreur lors du chargement des donnees etablissement:', error);
