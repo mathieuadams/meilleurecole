@@ -620,10 +620,24 @@ async function getLyceeGTResults({ uai, year, ttlMs } = {}) {
     const presents = num(chosen.presents_total ?? chosen.presents_gnle);
     const successRate = num(chosen.taux_reu_total);
     const mentionsRate = num(chosen.taux_men_total ?? chosen.taux_men_gnle);
+    // Enrich mention counts from legacy dataset for the same year (if available)
+    let mentionsCounts = null;
+    try {
+      const legacy = await callDataset(DS.lycee_gt_indicators, { rows: 5, [`refine.code_etablissement`]: uai, 'refine.annee': String(chosenYear) }, { ttlMs });
+      const lf = legacy?.records?.[0]?.fields || null;
+      if (lf) {
+        mentionsCounts = {
+          ab: num(lf.nombre_de_mentions_ab_t) ?? num(lf.nombre_de_mentions_ab_g),
+          bien: num(lf.nombre_de_mentions_b_t) ?? num(lf.nombre_de_mentions_b_g),
+          tb_sans: num(lf.nombre_de_mentions_tb_sans_felicitations_t) ?? num(lf.nombre_de_mentions_tb_sans_felicitations_g),
+          tb_fel: num(lf.nombre_de_mentions_tb_avec_felicitations_t) ?? num(lf.nombre_de_mentions_tb_avec_felicitations_g),
+        };
+      }
+    } catch (_) {}
     return {
       year: String(chosenYear),
       summary: { presents, success_rate: successRate, mentions_rate: mentionsRate },
-      mentions_counts: null,
+      mentions_counts: mentionsCounts,
       dataset: DS.lycee_gt_v2,
     };
   };
