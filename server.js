@@ -279,15 +279,15 @@ app.get('/:city/:identifier', (req, res, next) => {
   // Reserved words
   const reserved = new Set([
     'api','css','js','components','images','favicon.ico',
-    'health','compare','about','search',
+    'school','health','compare','about','search',
     'review','write-review','terms','privacy','contact','trust',
     'data-sources','methodology','faq'
   ]);
   
   if (reserved.has(city.toLowerCase())) return next();
 
-  // Check if identifier looks like a URN (all digits or digits with dash)
-  if (/^\d+(-.*)?$/.test(identifier)) {
+  // Check if identifier looks like a school (UK URN: digits; FR UAI: 7 digits + letter)
+  if (/^\d+(-.*)?$/.test(identifier) || /^\d{7}[a-zA-Z](-.*)?$/.test(identifier)) {
     // It's a school (URN or URN-slug)
     return sendPublic(res, 'school.html');
   } else {
