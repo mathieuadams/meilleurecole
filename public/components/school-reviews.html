@@ -216,12 +216,16 @@
 
   .review-star {
     color: #fbbf24;
-    font-size: 0.875rem;
+    font-size: 0; /* hide text content, use pseudo-element */
   }
 
   .review-star.empty {
     color: #e5e7eb;
   }
+
+  /* Render stars via CSS to avoid encoding issues */
+  .review-star::before { content: '★'; font-size: 0.875rem; color: #fbbf24; }
+  .review-star.empty::before { content: '★'; font-size: 0.875rem; color: #e5e7eb; }
 
   .review-text {
     color: #333;
@@ -614,10 +618,10 @@
 
       <div class="review-actions">
         <a href="#" class="review-action" onclick="markHelpful(event, ${review.id}); return false;">
-          Helpful (${review.helpful_count || 0})
+          Utile (${review.helpful_count || 0})
         </a>
         <a href="#" class="review-action" onclick="reportReview(event, ${review.id}); return false;">
-          Report
+          Signaler
         </a>
       </div>
     `;
@@ -628,7 +632,7 @@
 
   function displayNoReviews() {
     const container = document.getElementById('reviewsList');
-    container.innerHTML = '<div class="no-reviews">No reviews yet. Be the first to review this school!</div>';
+    container.innerHTML = '<div class="no-reviews">Pas encore d\'avis. Soyez le premier à donner votre avis !</div>';
     document.getElementById('loadMoreReviews').style.display = 'none';
   }
 
