@@ -299,6 +299,8 @@ app.get('/:city/:identifier', (req, res, next) => {
 // ---- API endpoint for local authority summary
 app.get('/api/local-authority/:laName/summary', async (req, res) => {
   const { laName } = req.params;
+  // FR-only mode: disable UK local authority endpoint
+  return res.status(404).json({ error: 'Local authority endpoint disabled (FR only)' });
   
   try {
     // Get all schools in this LA

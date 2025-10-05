@@ -392,12 +392,7 @@ function updateBreadcrumbs(school) {
   const cityCrumb = document.getElementById('cityCrumb');
   if (cityCrumb && city) {
     cityCrumb.textContent = city;
-    // For Wales, Northern Ireland, and Scotland, prefer search link to avoid 404 city routes
-    if (isNonEngland) {
-      cityCrumb.href = `/search?type=location&q=${encodeURIComponent(city)}`;
-    } else {
-      cityCrumb.href = `/${city.toLowerCase().replace(/\s+/g, '-')}`;
-    }
+    cityCrumb.href = `/search?type=location&q=${encodeURIComponent(city)}`;
   }
   const laCrumb = document.getElementById('laCrumb');
   if (laCrumb) {
@@ -409,14 +404,7 @@ function updateBreadcrumbs(school) {
     } else if (la) {
       laCrumb.textContent = la;
       const laSlug = la.toLowerCase().replace(/\s+/g, '-');
-      // For non-England, always link to canonical LA route to avoid city slug routing issues
-      if (isNonEngland) {
-        laCrumb.href = `/local-authority/${laSlug}`;
-      } else if (city) {
-        laCrumb.href = `/${city.toLowerCase().replace(/\s+/g, '-')}/${laSlug}`;
-      } else {
-        laCrumb.href = `/local-authority/${laSlug}`;
-      }
+      laCrumb.href = `/search?type=location&q=${encodeURIComponent(la)}`;
     }
   }
   const schoolCrumb = document.getElementById('schoolCrumb');
