@@ -63,19 +63,20 @@
     const el = document.getElementById('frCommunePager'); if(!el) return;
     const prevDis = page<=1 ? 'disabled' : '';
     const nextDis = page>=totalPages ? 'disabled' : '';
+    const prevTarget = page>1 ? (page-1) : 1;
+    const nextTarget = page<totalPages ? (page+1) : totalPages;
     el.innerHTML = `
       <div class="pager">
-        <button type="button" ${prevDis} id="frPagePrev">Précédent</button>
+        <button type="button" ${prevDis} data-page="${prevTarget}">Précédent</button>
         <span>Page ${page} / ${totalPages}</span>
-        <button type="button" ${nextDis} id="frPageNext">Suivant</button>
+        <button type="button" ${nextDis} data-page="${nextTarget}">Suivant</button>
         <span class="meta">Total: ${total}</span>
       </div>`;
-    const prev=document.getElementById('frPagePrev'); const next=document.getElementById('frPageNext');
-    if (prev) prev.onclick = ()=> fetchAndRender(uai, page-1);
-    if (next) next.onclick = ()=> fetchAndRender(uai, page+1);
   }
 
+  let currentUai = null;
   async function fetchAndRender(uai, page){
+    currentUai = uai;
     const data = await loadCommune(uai, page);
     if(!data || !data.success) return;
     const items = (data.items||[]).sort((a,b)=> String(a.name).localeCompare(String(b.name)));
@@ -89,6 +90,16 @@
     renderMap(items, center);
     renderPager(uai, data.page||1, data.total_pages||1, data.total||items.length);
   }
+
+  // Delegate clicks for pager
+  document.addEventListener('click', function(e){
+    const pager = document.getElementById('frCommunePager');
+    if (!pager || !pager.contains(e.target)) return;
+    const btn = e.target.closest('button[data-page]');
+    if (!btn) return;
+    const p = parseInt(btn.getAttribute('data-page'), 10);
+    if (currentUai && Number.isFinite(p)) { e.preventDefault(); fetchAndRender(currentUai, p); }
+  });
 
   function render(s){ if(!s||!s.urn) return; fetchAndRender(s.urn, 1); }
   if(window.currentSchoolData) render(window.currentSchoolData);

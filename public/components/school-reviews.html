@@ -43,7 +43,7 @@
     margin: 0.5rem 0;
   }
 
-  .rating-star { color: #fbbf24; font-size: 0; }
+  .rating-star{font-size:0}
   .rating-star::before { content: '★'; font-size: 0.875rem; color: #fbbf24; }
   .rating-star.empty::before { content: '☆'; color: #e5e7eb; }
 
@@ -222,9 +222,7 @@
     color: #e5e7eb;
   }
 
-  /* Render stars via CSS to avoid encoding issues */
-  .review-star::before { content: '★'; font-size: 0.875rem; color: #fbbf24; }
-  .review-star.empty::before { content: '★'; font-size: 0.875rem; color: #e5e7eb; }
+  
 
   .review-text {
     color: #333;
@@ -695,3 +693,13 @@
   waitForSchoolData();
 })();
 </script>
+<style>
+/* Ensure summary stars render correctly and show empty when no rating */
+.rating-stars .rating-star{font-size:0}
+.rating-stars .rating-star::before{content:'☆'; font-size:0.875rem; color:#e5e7eb}
+.rating-stars.stars-1 .rating-star:nth-child(-n+1)::before{content:'★'; color:#fbbf24}
+.rating-stars.stars-2 .rating-star:nth-child(-n+2)::before{content:'★'; color:#fbbf24}
+.rating-stars.stars-3 .rating-star:nth-child(-n+3)::before{content:'★'; color:#fbbf24}
+.rating-stars.stars-4 .rating-star:nth-child(-n+4)::before{content:'★'; color:#fbbf24}
+.rating-stars.stars-5 .rating-star:nth-child(-n+5)::before{content:'★'; color:#fbbf24}
+</style>
