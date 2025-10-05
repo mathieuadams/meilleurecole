@@ -12,11 +12,11 @@
 </div>
 
 <style>
-.chip-grid{display:flex;gap:.75rem;flex-wrap:wrap}
-.chip{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:999px;background:#fff}
+.chip-grid{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.chip{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .65rem;border:1px solid #e5e7eb;border-radius:999px;background:#fff}
 .chip-label{font-weight:600;color:#374151}
 .chip-value{color:#111827}
-.muted{margin-top:.75rem;color:#6b7280;font-size:.875rem}
+.muted{margin-top:.5rem;color:#6b7280;font-size:.875rem}
 </style>
 
 <script>
@@ -37,4 +37,3 @@
   window.addEventListener('schoolDataLoaded', function(e){ render(e.detail); });
 })();
 </script>
-

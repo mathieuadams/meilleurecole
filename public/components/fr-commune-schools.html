@@ -65,9 +65,9 @@
     const nextDis = page>=totalPages ? 'disabled' : '';
     el.innerHTML = `
       <div class="pager">
-        <button ${prevDis} id="frPagePrev">Prev</button>
+        <button type="button" ${prevDis} id="frPagePrev">Précédent</button>
         <span>Page ${page} / ${totalPages}</span>
-        <button ${nextDis} id="frPageNext">Next</button>
+        <button type="button" ${nextDis} id="frPageNext">Suivant</button>
         <span class="meta">Total: ${total}</span>
       </div>`;
     const prev=document.getElementById('frPagePrev'); const next=document.getElementById('frPageNext');

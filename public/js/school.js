@@ -385,14 +385,15 @@ function updateBreadcrumbs(school) {
   const addr = school.address || {};
   const city = addr.town ? addr.town : null;
   const la = addr.local_authority ? addr.local_authority : null;
+  const academy = school.academie || addr.region || null;
   const country = (school.country || '').toLowerCase();
   const isNonEngland = country && country !== 'england';
   const isTrust = !!school.is_part_of_trust && !!school.trust_name;
 
   const cityCrumb = document.getElementById('cityCrumb');
-  if (cityCrumb && city) {
-    cityCrumb.textContent = city;
-    cityCrumb.href = `/search?type=location&q=${encodeURIComponent(city)}`;
+  if (cityCrumb) {
+    cityCrumb.textContent = academy || city || '-';
+    cityCrumb.href = `/search?type=location&q=${encodeURIComponent(academy || city || '')}`;
   }
   const laCrumb = document.getElementById('laCrumb');
   if (laCrumb) {
@@ -401,10 +402,9 @@ function updateBreadcrumbs(school) {
       const trustSlug = slugger(school.trust_name);
       laCrumb.textContent = school.trust_name;
       laCrumb.href = `/trust/${trustSlug}`;
-    } else if (la) {
-      laCrumb.textContent = la;
-      const laSlug = la.toLowerCase().replace(/\s+/g, '-');
-      laCrumb.href = `/search?type=location&q=${encodeURIComponent(la)}`;
+    } else if (la || city) {
+      laCrumb.textContent = city || la;
+      laCrumb.href = `/search?type=location&q=${encodeURIComponent(city || la)}`;
     }
   }
   const schoolCrumb = document.getElementById('schoolCrumb');

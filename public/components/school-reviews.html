@@ -43,10 +43,9 @@
     margin: 0.5rem 0;
   }
 
-  .rating-star {
-    color: #fbbf24;
-    font-size: 0.875rem;
-  }
+  .rating-star { color: #fbbf24; font-size: 0; }
+  .rating-star::before { content: '★'; font-size: 0.875rem; color: #fbbf24; }
+  .rating-star.empty::before { content: '☆'; color: #e5e7eb; }
 
   .reviews-count {
     font-size: 0.75rem;

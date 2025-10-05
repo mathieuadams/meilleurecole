@@ -423,6 +423,7 @@ router.get('/:urn', async (req, res) => {
           urn: row.uai,
           name: row.name,
           country: 'France',
+          academie: row.academie,
 
           type: row.type_etablissement,
           phase: row.statut_public_prive,
