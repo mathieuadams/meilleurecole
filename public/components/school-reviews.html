@@ -498,6 +498,14 @@
       star.textContent = i <= Math.round(avgRating) ? 'â˜…' : 'â˜†';
       starsContainer.appendChild(star);
     }
+    // Normalize stars: CSS-only, empty when no reviews
+    try {
+      const filledCount = (stats.total_reviews && avgRating > 0) ? Math.round(avgRating) : 0;
+      Array.from(starsContainer.children).forEach((el, idx) => {
+        el.classList.toggle('empty', idx >= filledCount);
+        el.textContent = '';
+      });
+    } catch(_) {}
 
     // Update rating bars with distribution
     const total = stats.total_reviews || 0;
