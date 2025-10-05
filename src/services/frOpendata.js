@@ -425,6 +425,80 @@ async function getCommuneSchools({ uai, rows = 200, ttlMs } = {}) {
 
 module.exports.getCommuneSchools = getCommuneSchools;
 
+// ------------------------------ Levels by gender ---------------------------
+
+function safeNum(v){
+  const n = Number(v); return Number.isFinite(n) ? n : 0;
+}
+
+function aggMax(dst, k, v){ dst[k] = Math.max(dst[k] || 0, safeNum(v)); }
+
+async function getLevelsByGender({ uai, type, years = 5, ttlMs } = {}) {
+  const t = String(type || '').toLowerCase();
+  let dataset, refineKey, mapping;
+  if (t === 'college') {
+    dataset = DS.effectifs_college; refineKey = 'numero_college';
+    mapping = {
+      levels: [ '6e','5e','4e','3e' ],
+      girls: { '6e': '6eme_filles', '5e': '5eme_filles', '4e': '4eme_filles', '3e': '3eme_filles' },
+      boys:  { '6e': '6emes_garcons', '5e': '5emes_garcons', '4e': '4emes_garcons', '3e': '3emes_garcons' },
+      totals:{ '6e': 'nombre_total_de_6emes', '5e': 'nombre_total_de_5emes', '4e': 'nombre_total_de_4emes', '3e': 'nombre_total_de_3emes' }
+    };
+  } else if (t === 'lycee_gt' || t === 'lycee' || t.includes('gt')) {
+    dataset = DS.effectifs_lycee_gt; refineKey = 'numero_lycee';
+    mapping = {
+      levels: [ '2nde','1re','Term' ],
+      girls: { '2nde': '2ndes_gt_filles', '1re': '1eres_g_filles', 'Term': 'terminales_g_filles' },
+      boys:  { '2nde': '2ndes_gt_garcons', '1re': '1eres_g_garcons', 'Term': 'terminales_g_garcons' },
+      totals:{ '2nde': '2ndes_gt', '1re': '1eres_g', 'Term': 'terminales_g' }
+    };
+  } else if (t === 'lycee_pro' || t.includes('pro')) {
+    dataset = DS.effectifs_lycee_pro; refineKey = 'numero_lycee';
+    mapping = {
+      levels: [ '2nde pro','1re pro','Term pro' ],
+      girls: { '2nde pro': '2ndes_pro_filles', '1re pro': '1eres_pro_filles', 'Term pro': 'terminales_pro_filles' },
+      boys:  { '2nde pro': '2ndes_pro_garcons', '1re pro': '1eres_pro_garcons', 'Term pro': 'terminales_pro_garcons' },
+      totals:{ '2nde pro': '2ndes_pro', '1re pro': '1eres_pro', 'Term pro': 'terminales_pro' }
+    };
+  } else {
+    throw new Error('Unsupported effectifs type');
+  }
+
+  const params = { rows: 1000 };
+  params[`refine.${refineKey}`] = uai;
+  const data = await callDataset(dataset, params, { ttlMs });
+  const recs = data?.records || [];
+
+  // Aggregate per year with max across duplicate rows
+  const byYear = new Map();
+  for (const r of recs) {
+    const f = r.fields || {};
+    const y = String(f.rentree_scolaire || '').match(/\d{4}/)?.[0];
+    if (!y) continue;
+    if (!byYear.has(y)) {
+      const levels = {}; mapping.levels.forEach(L => levels[L] = { girls: 0, boys: 0, total: 0 });
+      byYear.set(y, { levels, grand_total: 0 });
+    }
+    const row = byYear.get(y);
+    for (const L of mapping.levels) {
+      aggMax(row.levels[L], 'girls', f[mapping.girls[L]]);
+      aggMax(row.levels[L], 'boys', f[mapping.boys[L]]);
+      aggMax(row.levels[L], 'total', f[mapping.totals[L]]);
+    }
+  }
+  // compute grand totals
+  for (const [y, row] of byYear.entries()) {
+    let sum = 0; mapping.levels.forEach(L => { sum += safeNum(row.levels[L].total) || (safeNum(row.levels[L].girls)+safeNum(row.levels[L].boys)); });
+    row.grand_total = sum;
+  }
+
+  const yearsSorted = Array.from(byYear.keys()).map(n=>parseInt(n,10)).filter(Number.isFinite).sort((a,b)=>b-a).slice(0, Number(years)||5).map(String);
+  const series = yearsSorted.map(y => ({ year: y, ...byYear.get(y) }));
+  return { success: true, type: t, dataset, levels: mapping.levels, series };
+}
+
+module.exports.getLevelsByGender = getLevelsByGender;
+
 // ------------------------------ Langues ------------------------------------
 
 function accumulateLanguagesFromFields(fields, buckets) {

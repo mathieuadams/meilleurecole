@@ -1,0 +1,62 @@
+<!-- fr-school-levels.html -->
+<div class="section-card">
+  <div class="section-header">
+    <h2 class="section-title">Nombre d'eleves par niveau et par genre</h2>
+  </div>
+  <div id="frLevelsTableWrap" class="levels-wrap"></div>
+</div>
+
+<style>
+.levels-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.levels-table th,.levels-table td{border:1px solid #e5e7eb;padding:.4rem .5rem;text-align:center}
+.levels-table th{background:#f9fafb;color:#374151}
+.levels-table td:first-child,.levels-table th:first-child{text-align:left}
+.levels-sub{font-size:.8rem;color:#6b7280}
+.levels-wrap{overflow:auto}
+</style>
+
+<script>
+(function(){
+  function detectType(s){
+    const te = (s.type_etablissement || s.type || '').toLowerCase();
+    if (te.includes('coll')) return 'college';
+    if (te.includes('pro')) return 'lycee_pro';
+    if (te.includes('lyc')) return 'lycee_gt';
+    return null;
+  }
+  async function loadLevels(uai, type){
+    try{ const r = await fetch(`/api/fr/effectifs/${encodeURIComponent(uai)}/levels?type=${type}&years=5`); return await r.json(); }catch{ return null; }
+  }
+  function headerRow(levels){
+    const cols = ['Annee scolaire'];
+    levels.forEach(L => { cols.push(`${L} Filles`, `${L} Garcons`, `${L} Total`); });
+    cols.push('Total');
+    return `<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  }
+  function renderTable(data){
+    const wrap = document.getElementById('frLevelsTableWrap'); if(!wrap) return;
+    if (!data || !Array.isArray(data.series) || !data.series.length){ wrap.textContent='Aucune donnee'; return; }
+    const levels = data.levels || [];
+    const rows = data.series.map(row=>{
+      const cells = [ `<td>${row.year}</td>` ];
+      levels.forEach(L=>{
+        const lv = row.levels[L] || {}; const g=lv.girls||0; const b=lv.boys||0; const t=lv.total||g+b;
+        cells.push(`<td>${g}</td>`,`<td>${b}</td>`,`<td>${t}</td>`);
+      });
+      cells.push(`<td>${row.grand_total||0}</td>`);
+      return `<tr>${cells.join('')}</tr>`;
+    }).join('');
+    const html = `<table class="levels-table"><thead>${headerRow(levels)}</thead><tbody>${rows}</tbody></table>`;
+    wrap.innerHTML = html;
+  }
+  async function render(s){
+    if(!s||!s.urn) return;
+    const type = detectType(s); if(!type) return;
+    const data = await loadLevels(s.urn, type);
+    if (data && data.success) renderTable(data);
+  }
+  if(window.currentSchoolData) render(window.currentSchoolData);
+  window.addEventListener('schoolDataLoaded', e=>render(e.detail));
+})();
+</script>
+

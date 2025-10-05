@@ -12,6 +12,7 @@ const { getIPS } = require('../services/frOpendata');
 const { getAnnuaireByUai } = require('../services/frOpendata');
 const { getCommuneSchools } = require('../services/frOpendata');
 const { getLanguagesByType } = require('../services/frOpendata');
+const { getLevelsByGender } = require('../services/frOpendata');
 const { getCollegeResults, getLyceeGTResults } = require('../services/frOpendata');
 const { query } = require('../config/database');
 
@@ -99,6 +100,21 @@ router.get('/langues/:uai', async (req, res) => {
   } catch (e) {
     console.error('fr/langues error', e);
     res.status(500).json({ error: 'Langues indisponibles', message: e.message });
+  }
+});
+
+// GET /api/fr/effectifs/:uai/levels?type=college|lycee_gt|lycee_pro&years=5
+router.get('/effectifs/:uai/levels', async (req, res) => {
+  try {
+    const uai = String(req.params.uai || '').trim();
+    const type = String(req.query.type || '').trim();
+    const years = req.query.years ? Number(req.query.years) : undefined;
+    if (!uai || !type) return res.status(400).json({ error: 'uai and type are required' });
+    const result = await getLevelsByGender({ uai, type, years, ttlMs: 2 * 60 * 60 * 1000 });
+    res.json(result);
+  } catch (e) {
+    console.error('fr/effectifs levels error', e);
+    res.status(500).json({ error: 'Levels dataset unavailable', message: e.message });
   }
 });
 
