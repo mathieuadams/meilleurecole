@@ -611,9 +611,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if we're on a school page
     const path = window.location.pathname;
     if (path.startsWith('/school/')) {
-        const urn = path.split('/').pop();
-        if (urn) {
-            loadSchoolData(urn);
+        // If the new school page scripts/components are present, let them drive the page
+        if (document.getElementById('frIdentitySection')) {
+            // New school page managed by public/js/school.js
+        } else {
+            // Legacy fallback: extract URN/UAI from slug
+            const last = path.split('/').pop() || '';
+            const m = last.match(/(\d{7}[A-Za-z]|\d{4,})/);
+            const urn = m ? m[1] : last;
+            if (urn) {
+                loadSchoolData(urn);
+            }
         }
     }
 });
